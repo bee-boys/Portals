@@ -29,7 +29,40 @@ public class TeleportableBody : MonoBehaviour
 
     private TeleportableTracker _tracker = null;
 
-    public Portal TriggeredPortal => _triggeredPortal;
+    public Portal CurrentPortal => OverridePortal ? OverridePortal : TriggeredPortal;
+
+    public Portal OverridePortal
+    {
+        get
+        {
+            return _overridePortal;
+        }
+        set
+        {
+            var previous = CurrentPortal;
+
+            _overridePortal = value;
+
+            CheckPortalChange(previous, CurrentPortal);
+        }
+    }
+    private Portal _overridePortal = null;
+
+    public Portal TriggeredPortal
+    {
+        get
+        {
+            return _triggeredPortal;
+        }
+        set
+        {
+            var previous = CurrentPortal;
+
+            _triggeredPortal = value;
+
+            CheckPortalChange(previous, CurrentPortal);
+        }
+    }
 
     private Portal _triggeredPortal = null;
 
@@ -47,17 +80,31 @@ public class TeleportableBody : MonoBehaviour
 
     private void OnDisable()
     {
-        if (TriggeredPortal)
-        {
-            OnPortalExitEvent?.Invoke(this, TriggeredPortal);
+        OverridePortal = null;
+        TriggeredPortal = null;
+    }
 
-            _triggeredPortal = null;
+    private void CheckPortalChange(Portal previous, Portal current)
+    {
+        if (previous == current)
+        {
+            return;
+        }
+
+        if (previous != null)
+        {
+            OnPortalExitEvent?.Invoke(this, previous);
+        }
+
+        if (current != null)
+        {
+            OnPortalEnterEvent?.Invoke(this, current);
         }
     }
 
     private void CreateTracker()
     {
-        GameObject trackerGameObject = new GameObject("Teleportable Tracker");
+        var trackerGameObject = new GameObject("Teleportable Tracker");
         trackerGameObject.transform.parent = transform;
         trackerGameObject.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         trackerGameObject.transform.localScale = Vector3.one;
@@ -81,15 +128,7 @@ public class TeleportableBody : MonoBehaviour
 
         if (portal != null)
         {
-            if (TriggeredPortal)
-            {
-                OnPortalExitEvent?.Invoke(this, TriggeredPortal);
-                _triggeredPortal = null;
-            }
-
-            _triggeredPortal = portal;
-
-            OnPortalEnterEvent?.Invoke(this, portal);
+            TriggeredPortal = portal;
         }
     }
 
@@ -104,9 +143,7 @@ public class TeleportableBody : MonoBehaviour
 
         if (portal == TriggeredPortal)
         {
-            _triggeredPortal = null;
-
-            OnPortalExitEvent?.Invoke(this, portal);
+            TriggeredPortal = null;
         }
     }
 
