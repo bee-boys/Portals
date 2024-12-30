@@ -231,6 +231,11 @@ public class Teleportable : MonoBehaviour
 
     public void UpdateClone()
     {
+        if (!_cloneRenderer || !_cloneRenderer.CloneTransform || !_cloneRenderer.OriginalTransform)
+        {
+            return;
+        }
+
         var cloneMatrix = CalculateTeleportedMatrix(_cloneRenderer.OriginalTransform.localToWorldMatrix, _inPortal.transform, _outPortal.transform);
 
         _cloneRenderer.CloneTransform.position = cloneMatrix.GetPosition();
