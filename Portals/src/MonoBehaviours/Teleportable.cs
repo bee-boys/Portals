@@ -26,8 +26,8 @@ public class Teleportable : MonoBehaviour
     private InteractableHostManager _hostManager = null;
     private bool _hasHostManager = false;
 
-    public List<TeleportableTracker> Trackers => _trackers;
-    private List<TeleportableTracker> _trackers = new();
+    public List<TeleportableBody> Bodies => _bodies;
+    private List<TeleportableBody> _bodies = new();
 
     public bool HasPortals => _inPortal && _outPortal;
 
@@ -45,8 +45,6 @@ public class Teleportable : MonoBehaviour
     protected float _initialSign = 0f;
 
     protected CloneRenderer _cloneRenderer = null;
-
-    private List<Collider> _ignoredColliders = new();
 
     private void Awake()
     {
@@ -95,7 +93,7 @@ public class Teleportable : MonoBehaviour
         ClearPortals();
     }
 
-    protected void SetupEntity(MarrowEntity marrowEntity)
+    protected virtual void SetupEntity(MarrowEntity marrowEntity)
     {
         _marrowEntity = marrowEntity;
 
@@ -104,46 +102,41 @@ public class Teleportable : MonoBehaviour
 
         foreach (var body in marrowEntity.Bodies)
         {
-            var tracker = body.gameObject.AddComponent<TeleportableTracker>();
-
-            _trackers.Add(tracker);
-
-            tracker.OnTriggerEnterEvent += OnTriggerEnterCallback;
-            tracker.OnTriggerExitEvent += OnTriggerExitCallback;
+            SetupBody(body);
         }
+    }
+
+    protected virtual void SetupBody(MarrowBody marrowBody)
+    {
+        var tracker = marrowBody.gameObject.AddComponent<TeleportableBody>();
+
+        _bodies.Add(tracker);
+
+        tracker.OnPortalEnterEvent += OnPortalEnterCallback;
+        tracker.OnPortalExitEvent += OnPortalExitCallback;
     }
 
     protected int _portalCount = 0;
 
-    protected void OnTriggerEnterCallback(Collider other)
+    protected void OnPortalEnterCallback(TeleportableBody body, Portal portal)
     {
-        var portal = other.GetComponentInParent<Portal>();
+        _portalCount++;
 
-        if (portal != null)
+        if (_portalCount == 1)
         {
-            _portalCount++;
-
-            if (_portalCount == 1)
-            {
-                SetPortals(portal, portal.OtherPortal);
-            }
+            SetPortals(portal, portal.OtherPortal);
         }
     }
 
-    protected void OnTriggerExitCallback(Collider other)
+    protected void OnPortalExitCallback(TeleportableBody body, Portal portal)
     {
-        var portal = other.GetComponentInParent<Portal>();
+        _portalCount--;
 
-        if (portal != null)
+        if (_portalCount <= 0)
         {
-            _portalCount--;
+            SetPortals(null, null);
 
-            if (_portalCount <= 0)
-            {
-                SetPortals(null, null);
-
-                _portalCount = 0;
-            }
+            _portalCount = 0;
         }
     }
 
@@ -189,34 +182,12 @@ public class Teleportable : MonoBehaviour
         }
     }
 
-    public void IgnoreCollision(Collider collider, bool ignore)
+    public void CalculateTrackers()
     {
-        if (ignore)
+        foreach (var body in Bodies)
         {
-            _ignoredColliders.Add(collider);
+            body.CalculateTracker();
         }
-        else
-        {
-            _ignoredColliders.Remove(collider);
-        }
-
-        foreach (var body in MarrowEntity.Bodies)
-        {
-            body.IgnoreCollision(collider, ignore);
-        }
-    }
-
-    public void ResetCollisions()
-    {
-        foreach (var collider in _ignoredColliders)
-        {
-            foreach (var body in MarrowEntity.Bodies)
-            {
-                body.IgnoreCollision(collider, false);
-            }
-        }
-
-        _ignoredColliders.Clear();
     }
 
     public void CreateClone(GameObject root)
@@ -224,6 +195,11 @@ public class Teleportable : MonoBehaviour
         DestroyClone();
 
         _cloneRenderer = CloneCreator.CreateClone(root);
+
+        if (HasPortals)
+        {
+            _cloneRenderer.Show();
+        }
     }
 
     public void DestroyClone()
@@ -287,6 +263,18 @@ public class Teleportable : MonoBehaviour
         return Mathf.Abs(currentSign - initialSign) > 1f;
     }
 
+    public bool InBounds(Portal portal, Vector3 point)
+    {
+        var portalExtents = portal.Size * 0.5f;
+        var pointInPortal = portal.transform.InverseTransformPoint(point);
+
+        bool outOfBounds =
+            pointInPortal.x > portalExtents.x || pointInPortal.x < -portalExtents.x ||
+            pointInPortal.y > portalExtents.y || pointInPortal.y < -portalExtents.y;
+
+        return !outOfBounds;
+    }
+
     public bool IsGrabbed()
     {
         if (HasHostManager)
@@ -294,7 +282,7 @@ public class Teleportable : MonoBehaviour
             return HostManager.grabbedHosts.Count > 0;
         }
 
-        foreach (var tracker in Trackers)
+        foreach (var tracker in Bodies)
         {
             if (!tracker.HasHost)
             {

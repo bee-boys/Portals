@@ -12,6 +12,7 @@ using Il2CppSLZ.Bonelab;
 using UnityEngine;
 
 using Portals.Rendering;
+using Il2CppSLZ.Marrow.Interaction;
 
 namespace Portals.MonoBehaviours;
 
@@ -79,6 +80,17 @@ public class TeleportableRigManager : Teleportable
         _onPostLateUpdate = null;
     }
 
+    protected override void SetupBody(MarrowBody marrowBody)
+    {
+        // Don't track the BodyLog
+        if (marrowBody.name.ToLower() == "spheregrip")
+        {
+            return;
+        }
+
+        base.SetupBody(marrowBody);
+    }
+
     private void OnPostLateUpdate()
     {
         UpdateRotationCorrection();
@@ -95,7 +107,7 @@ public class TeleportableRigManager : Teleportable
 
         var newSign = GetPortalSign(inPortal);
 
-        if (PassedThrough(_initialSign, newSign) && !IsGrabbed())
+        if (PassedThrough(_initialSign, newSign) && InBounds(_inPortal, GetAnchor()) && !IsGrabbed())
         {
             Teleport(inPortal, outPortal);
 
@@ -161,7 +173,7 @@ public class TeleportableRigManager : Teleportable
 
     private void OnAvatarSwapped()
     {
-        ClearPortals();
+        CalculateTrackers();
 
         CreateClone(RigManager.gameObject);
     }

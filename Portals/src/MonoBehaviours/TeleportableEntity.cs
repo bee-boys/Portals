@@ -33,7 +33,7 @@ public class TeleportableEntity : Teleportable
 
         var newSign = GetPortalSign(_inPortal);
 
-        if (PassedThrough(_initialSign, newSign) && !IsGrabbed())
+        if (PassedThrough(_initialSign, newSign) && InBounds(_inPortal, GetAnchor()) && !IsGrabbed())
         {
             Teleport(_inPortal, _outPortal);
 

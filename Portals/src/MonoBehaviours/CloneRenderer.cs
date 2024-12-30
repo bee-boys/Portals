@@ -15,8 +15,6 @@ public class CloneRenderer : MonoBehaviour
     private Transform _cloneTransform = null;
     private Transform _originalTransform = null;
 
-    private Dictionary<LODGroup, LODGroup> _originalToCloneLodGroup = new();
-
     private List<SkinnedMeshRenderer> _originalSkinnedRenderers = new();
     private Dictionary<SkinnedMeshRenderer, MeshRenderer> _skinnedToCloneRenderer = new();
     private Dictionary<SkinnedMeshRenderer, MeshFilter> _skinnedToCloneFilter = new();
@@ -34,6 +32,14 @@ public class CloneRenderer : MonoBehaviour
 
     private void GetRenderers(Transform clone, Transform original)
     {
+        // If theres no renderers in the original, why bother looking?
+        if (!original.GetComponentInChildren<Renderer>(true)) 
+        {
+            // Don't DestroyImmediate as this breaks the child check
+            Destroy(clone.gameObject);
+            return;
+        }
+
         var meshFilter = original.GetComponent<MeshFilter>();
         var meshRenderer = original.GetComponent<MeshRenderer>();
 
@@ -54,6 +60,8 @@ public class CloneRenderer : MonoBehaviour
             var childClone = clone.GetChild(i);
             var childOriginal = original.GetChild(i);
 
+            childClone.gameObject.SetActive(true);
+
             GetRenderers(childClone, childOriginal);
         }
     }
@@ -68,6 +76,7 @@ public class CloneRenderer : MonoBehaviour
 
         cloneRenderer.shadowCastingMode = renderer.shadowCastingMode;
         cloneRenderer.sharedMaterials = renderer.sharedMaterials;
+        cloneRenderer.enabled = renderer.enabled;
 
         _originalMeshRenderers.Add(renderer);
         _originalToCloneMeshRenderer[renderer] = cloneRenderer;
@@ -79,6 +88,9 @@ public class CloneRenderer : MonoBehaviour
         var cloneRenderer = clone.gameObject.AddComponent<MeshRenderer>();
 
         cloneRenderer.sharedMaterials = renderer.sharedMaterials;
+        cloneRenderer.enabled = renderer.enabled;
+        cloneRenderer.shadowCastingMode = renderer.shadowCastingMode;
+
         cloneFilter.sharedMesh = new Mesh();
 
         _originalSkinnedRenderers.Add(renderer);
@@ -114,6 +126,15 @@ public class CloneRenderer : MonoBehaviour
 
             var cloneRenderer = _originalToCloneMeshRenderer[renderer];
 
+            if (!CheckActive(cloneRenderer, renderer))
+            {
+                continue;
+            }
+
+            cloneRenderer.shadowCastingMode = renderer.shadowCastingMode;
+            cloneRenderer.sharedMaterials = renderer.sharedMaterials;
+
+            // Update positions
             var cloneTransform = cloneRenderer.transform;
             var originalTransform = renderer.transform;
 
@@ -133,8 +154,19 @@ public class CloneRenderer : MonoBehaviour
                 continue;
             }
 
+            var cloneRenderer = _skinnedToCloneRenderer[renderer];
+
+            if (!CheckActive(cloneRenderer, renderer))
+            {
+                continue;
+            }
+
             var meshFilter = _skinnedToCloneFilter[renderer];
 
+            cloneRenderer.shadowCastingMode = renderer.shadowCastingMode;
+            cloneRenderer.sharedMaterials = cloneRenderer.sharedMaterials;
+
+            // Update positions
             var cloneTransform = meshFilter.transform;
             var originalTransform = renderer.transform;
 
@@ -143,7 +175,30 @@ public class CloneRenderer : MonoBehaviour
 
             cloneTransform.SetPositionAndRotation(newPosition, newRotation);
 
+            // Bake the skinned mesh onto the mesh renderer
             renderer.BakeMesh(meshFilter.mesh, true);
         }
+    }
+
+    private bool CheckActive(Renderer clone, Renderer original)
+    {
+        bool active = original.gameObject.activeInHierarchy;
+
+        if (!active)
+        {
+            clone.enabled = false;
+            return false;
+        }
+
+        bool enabled = original.enabled;
+
+        if (!enabled)
+        {
+            clone.enabled = false;
+            return false;
+        }
+
+        clone.enabled = true;
+        return true;
     }
 }

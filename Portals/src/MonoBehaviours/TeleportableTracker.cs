@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using UnityEngine;
+using Il2CppInterop.Runtime.Attributes;
 
 using MelonLoader;
 
-using Il2CppSLZ.Marrow;
+using UnityEngine;
 
 namespace Portals.MonoBehaviours;
 
@@ -17,19 +13,20 @@ public class TeleportableTracker : MonoBehaviour
 {
     public TeleportableTracker(IntPtr intPtr) : base(intPtr) { }
 
-    public InteractableHost Host => _host;
-
-    public bool HasHost => _hasHost;
-
-    private InteractableHost _host = null;
-    private bool _hasHost = false;
-
+    [HideFromIl2Cpp]
     public event Action<Collider> OnTriggerEnterEvent, OnTriggerExitEvent;
+
+    public BoxCollider TrackerCollider => _trackerCollider;
+    private BoxCollider _trackerCollider = null;
 
     private void Awake()
     {
-        _host = GetComponent<InteractableHost>();
-        _hasHost = _host != null;
+        var kinematicRb = gameObject.AddComponent<Rigidbody>();
+        kinematicRb.isKinematic = true;
+        kinematicRb.useGravity = false;
+
+        _trackerCollider = gameObject.AddComponent<BoxCollider>();
+        _trackerCollider.isTrigger = true;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -40,5 +37,11 @@ public class TeleportableTracker : MonoBehaviour
     private void OnTriggerExit(Collider other)
     {
         OnTriggerExitEvent?.Invoke(other);
+    }
+
+    public void SetBounds(Bounds bounds)
+    {
+        _trackerCollider.center = bounds.center;
+        _trackerCollider.size = bounds.size;
     }
 }

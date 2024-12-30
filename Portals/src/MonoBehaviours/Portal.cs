@@ -53,12 +53,12 @@ public class Portal : MonoBehaviour
 
         _rendererMaterial = PortalRenderer.material;
 
-        _rendererMaterial.SetTexture("_LeftEyeTexture", _leftEyeCamera.TargetTexture);
-        _rendererMaterial.SetTexture("_RightEyeTexture", _rightEyeCamera.TargetTexture);
+        _rendererMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
+        _rendererMaterial.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
 
         var nearPlaneMaterial = PortalNearPlane.material;
-        nearPlaneMaterial.SetTexture("_LeftEyeTexture", _leftEyeCamera.TargetTexture);
-        nearPlaneMaterial.SetTexture("_RightEyeTexture", _leftEyeCamera.TargetTexture);
+        nearPlaneMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
+        nearPlaneMaterial.SetTexture(PortalShaderConstants.RightEyeTextureName, _leftEyeCamera.TargetTexture);
 
         _nearPlaneMesh = new Mesh();
         PortalNearPlane.GetComponent<MeshFilter>().sharedMesh = _nearPlaneMesh;
