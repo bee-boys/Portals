@@ -31,13 +31,16 @@ public class TeleportableEntity : Teleportable
 
         UpdateClone();
 
-        var newSign = GetPortalSign(_inPortal);
+        var inPortal = _inPortal;
+        var outPortal = _outPortal;
 
-        if (PassedThrough(_initialSign, newSign) && InBounds(_inPortal, GetAnchor()) && !IsGrabbed())
+        var newSign = GetPortalSign(inPortal);
+
+        if (PassedThrough(_initialSign, newSign) && InBounds(inPortal, GetAnchor()) && !IsGrabbed())
         {
-            Teleport(_inPortal, _outPortal);
+            Teleport(inPortal, outPortal);
 
-            SetPortals(_outPortal, _inPortal);
+            SetPortals(outPortal, inPortal);
 
             UpdateClone();
         }
