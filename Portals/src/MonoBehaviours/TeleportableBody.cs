@@ -72,11 +72,6 @@ public class TeleportableBody : MonoBehaviour
 
     private void OnTrackerTriggerEnter(Collider other)
     {
-        if (TriggeredPortal)
-        {
-            return;
-        }
-
         if (!HasRigidbody)
         {
             return;
@@ -86,6 +81,12 @@ public class TeleportableBody : MonoBehaviour
 
         if (portal != null)
         {
+            if (TriggeredPortal)
+            {
+                OnPortalExitEvent?.Invoke(this, TriggeredPortal);
+                _triggeredPortal = null;
+            }
+
             _triggeredPortal = portal;
 
             OnPortalEnterEvent?.Invoke(this, portal);
