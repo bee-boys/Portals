@@ -31,6 +31,8 @@ public class Teleportable : MonoBehaviour
 
     public bool HasPortals => _inPortal && _outPortal;
 
+    public bool HasClone => _cloneRenderer && _cloneRenderer.OriginalTransform && _cloneRenderer.CloneTransform;
+
     protected Portal _inPortal = null;
     protected Portal _outPortal = null;
 
@@ -231,7 +233,7 @@ public class Teleportable : MonoBehaviour
 
     public void UpdateClone()
     {
-        if (!_cloneRenderer || !_cloneRenderer.CloneTransform || !_cloneRenderer.OriginalTransform)
+        if (!HasClone || !HasPortals)
         {
             return;
         }
@@ -266,6 +268,11 @@ public class Teleportable : MonoBehaviour
 
     public bool PassedThrough(float initialSign, float currentSign)
     {
+        if (Mathf.Approximately(currentSign, 0f))
+        {
+            return false;
+        }
+
         return Mathf.Abs(currentSign - initialSign) > 1f;
     }
 

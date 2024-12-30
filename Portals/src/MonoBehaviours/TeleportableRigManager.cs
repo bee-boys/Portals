@@ -81,13 +81,16 @@ public class TeleportableRigManager : Teleportable
 
         UpdateClone();
 
-        var newSign = GetPortalSign(_inPortal);
+        var inPortal = _inPortal;
+        var outPortal  = _outPortal;
+
+        var newSign = GetPortalSign(inPortal);
 
         if (PassedThrough(_initialSign, newSign) && !IsGrabbed())
         {
-            Teleport(_inPortal, _outPortal);
+            Teleport(inPortal, outPortal);
 
-            SetPortals(_outPortal, _inPortal);
+            SetPortals(outPortal, inPortal);
 
             UpdateClone();
         }
