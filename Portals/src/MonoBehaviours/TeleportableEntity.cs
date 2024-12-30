@@ -38,6 +38,8 @@ public class TeleportableEntity : Teleportable
             Teleport(_inPortal, _outPortal);
 
             SetPortals(_outPortal, _inPortal);
+
+            UpdateClone();
         }
     }
 
