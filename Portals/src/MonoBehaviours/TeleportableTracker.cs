@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Il2CppInterop.Runtime.Attributes;
+using Il2CppSLZ.Marrow.Interaction;
 
 using MelonLoader;
 
@@ -21,6 +22,8 @@ public class TeleportableTracker : MonoBehaviour
 
     private void Awake()
     {
+        gameObject.layer = (int)MarrowLayers.Plug;
+
         var kinematicRb = gameObject.AddComponent<Rigidbody>();
         kinematicRb.isKinematic = true;
         kinematicRb.useGravity = false;

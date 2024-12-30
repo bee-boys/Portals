@@ -8,6 +8,7 @@ using System;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 using Il2CppInterop.Runtime.Attributes;
+using Il2CppSLZ.Marrow.Interaction;
 
 using Portals.Patching;
 using Portals.Rendering;
@@ -48,6 +49,14 @@ public class Portal : MonoBehaviour
 
     public void Awake()
     {
+        foreach (var collider in GetComponentsInChildren<Collider>())
+        {
+            if (collider.isTrigger)
+            {
+                collider.gameObject.layer = (int)MarrowLayers.Socket;
+            }
+        }
+
         _leftEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Left);
         _rightEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Right);
 
