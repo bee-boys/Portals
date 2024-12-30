@@ -31,6 +31,9 @@ public class TeleportableRigManager : Teleportable
 
     private RigManager _rigManager = null;
 
+    public OpenControllerRig OpenControllerRig => _openControllerRig;
+    private OpenControllerRig _openControllerRig = null;
+
     public Transform Headset => _headset;
 
     private Transform _headset = null;
@@ -45,7 +48,8 @@ public class TeleportableRigManager : Teleportable
 
         _rigManager.onAvatarSwapped += (Il2CppSystem.Action)OnAvatarSwapped;
 
-        _headset = _rigManager.controllerRig.TryCast<OpenControllerRig>().headset;
+        _openControllerRig = _rigManager.controllerRig.TryCast<OpenControllerRig>();
+        _headset = _openControllerRig.headset;
 
         CreateClone(_rigManager.gameObject);
 
@@ -170,13 +174,6 @@ public class TeleportableRigManager : Teleportable
         var inPortalMatrix = inTransform.localToWorldMatrix;
         var outPortalMatrix = outTransform.localToWorldMatrix;
 
-        var newScale = outTransform.lossyScale.y / inTransform.lossyScale.y;
-
-        if (!Mathf.Approximately(newScale, 1f))
-        {
-            ScalePlayer(newScale);
-        }
-
         var pendingTransforms = new List<PendingTransform>();
         foreach (var rigidbody in MarrowEntity.Bodies)
         {
@@ -196,7 +193,8 @@ public class TeleportableRigManager : Teleportable
             pendingTransforms.Add(CreatePendingTransform(rig.transform, inPortalMatrix, outPortalMatrix));
         }
 
-        pendingTransforms.Add(CreatePendingTransform(RigManager.controllerRig.transform, inPortalMatrix, outPortalMatrix));
+        pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.transform, inPortalMatrix, outPortalMatrix));
+        pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.vrRoot, inPortalMatrix, outPortalMatrix));
 
         var anchor = RigManager.physicsRig.centerOfPressure;
 
@@ -256,6 +254,14 @@ public class TeleportableRigManager : Teleportable
 
         RigManager.physicsRig.artOutput.ArtOutputUpdate(RigManager.physicsRig);
         RigManager.physicsRig.artOutput.ArtOutputLateUpdate(RigManager.physicsRig);
+
+        // Scale the player's avatar
+        var newScale = outTransform.lossyScale.y / inTransform.lossyScale.y;
+
+        if (!Mathf.Approximately(newScale, 1f))
+        {
+            ScalePlayer(newScale);
+        }
     }
 
     private Vector2 TransformVector2(Vector2 vector, Transform inTransform, Transform outTransform)
