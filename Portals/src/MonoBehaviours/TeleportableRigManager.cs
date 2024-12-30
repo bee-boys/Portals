@@ -164,6 +164,9 @@ public class TeleportableRigManager : Teleportable
         var inTransform = inPortal.transform;
         var outTransform = outPortal.transform;
 
+        var inPortalMatrix = inTransform.localToWorldMatrix;
+        var outPortalMatrix = outTransform.localToWorldMatrix;
+
         var newScale = outTransform.lossyScale.y / inTransform.lossyScale.y;
 
         if (!Mathf.Approximately(newScale, 1f))
@@ -175,7 +178,7 @@ public class TeleportableRigManager : Teleportable
         foreach (var rigidbody in MarrowEntity.Bodies)
         {
             var rigidbodyTransform = rigidbody.transform;
-            var rigidbodyMatrix = CalculateTeleportedMatrix(rigidbodyTransform.localToWorldMatrix, inTransform, outTransform);
+            var rigidbodyMatrix = CalculateTeleportedMatrix(rigidbodyTransform.localToWorldMatrix, inPortalMatrix, outPortalMatrix);
 
             pendingTransforms.Add(new PendingTransform()
             {
@@ -187,14 +190,14 @@ public class TeleportableRigManager : Teleportable
 
         foreach (var rig in RigManager.remapRigs)
         {
-            pendingTransforms.Add(CreatePendingTransform(rig.transform, inTransform, outTransform));
+            pendingTransforms.Add(CreatePendingTransform(rig.transform, inPortalMatrix, outPortalMatrix));
         }
 
-        pendingTransforms.Add(CreatePendingTransform(RigManager.controllerRig.transform, inTransform, outTransform));
+        pendingTransforms.Add(CreatePendingTransform(RigManager.controllerRig.transform, inPortalMatrix, outPortalMatrix));
 
         var anchor = RigManager.physicsRig.centerOfPressure;
 
-        var newMatrix = CalculateTeleportedMatrix(anchor.localToWorldMatrix, inTransform, outTransform);
+        var newMatrix = CalculateTeleportedMatrix(anchor.localToWorldMatrix, inPortalMatrix, outPortalMatrix);
 
         var newPosition = newMatrix.GetPosition();
         var newRotation = newMatrix.rotation;
@@ -261,9 +264,9 @@ public class TeleportableRigManager : Teleportable
         return new Vector2(newVector.x, newVector.z);
     }
 
-    private PendingTransform CreatePendingTransform(Transform transform, Transform inTransform, Transform outTransform)
+    private PendingTransform CreatePendingTransform(Transform transform, Matrix4x4 inMatrix, Matrix4x4 outMatrix)
     {
-        var matrix = CalculateTeleportedMatrix(transform.localToWorldMatrix, inTransform, outTransform);
+        var matrix = CalculateTeleportedMatrix(transform.localToWorldMatrix, inMatrix, outMatrix);
         return new PendingTransform()
         {
             transform = transform,

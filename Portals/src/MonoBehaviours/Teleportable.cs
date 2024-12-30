@@ -247,11 +247,12 @@ public class Teleportable : MonoBehaviour
 
     public Matrix4x4 CalculateTeleportedMatrix(Matrix4x4 matrix, Transform inTransform, Transform outTransform)
     {
-        var inMatrix = inTransform.localToWorldMatrix;
+        return CalculateTeleportedMatrix(matrix, inTransform.localToWorldMatrix, outTransform.localToWorldMatrix);
+    }
 
-        var relativeMatrix = Matrix4x4.Inverse(inMatrix) * matrix;
-
-        var outMatrix = outTransform.localToWorldMatrix;
+    public Matrix4x4 CalculateTeleportedMatrix(Matrix4x4 matrix, Matrix4x4 inMatrix, Matrix4x4 outMatrix)
+    {
+        var relativeMatrix = inMatrix.inverse * matrix;
 
         var newMatrix = outMatrix * relativeMatrix;
 
