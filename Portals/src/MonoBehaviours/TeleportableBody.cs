@@ -80,8 +80,8 @@ public class TeleportableBody : MonoBehaviour
 
     private void OnDisable()
     {
-        OverridePortal = null;
         TriggeredPortal = null;
+        OverridePortal = null;
     }
 
     private void CheckPortalChange(Portal previous, Portal current)
