@@ -31,6 +31,9 @@ public class TeleportableRigManager : Teleportable
 
     private RigManager _rigManager = null;
 
+    public PhysicsRig PhysicsRig => _physicsRig;
+    private PhysicsRig _physicsRig = null;
+
     public OpenControllerRig OpenControllerRig => _openControllerRig;
     private OpenControllerRig _openControllerRig = null;
 
@@ -50,6 +53,8 @@ public class TeleportableRigManager : Teleportable
 
         _openControllerRig = _rigManager.controllerRig.TryCast<OpenControllerRig>();
         _headset = _openControllerRig.headset;
+
+        _physicsRig = _rigManager.physicsRig;
 
         CreateClone(_rigManager.gameObject);
 
@@ -252,9 +257,6 @@ public class TeleportableRigManager : Teleportable
             _correctBallLoco = true;
         }
 
-        RigManager.physicsRig.artOutput.ArtOutputUpdate(RigManager.physicsRig);
-        RigManager.physicsRig.artOutput.ArtOutputLateUpdate(RigManager.physicsRig);
-
         // Scale the player's avatar
         var newScale = outTransform.lossyScale.y / inTransform.lossyScale.y;
 
@@ -262,6 +264,14 @@ public class TeleportableRigManager : Teleportable
         {
             ScalePlayer(newScale);
         }
+
+        UpdateArt();
+    }
+
+    private void UpdateArt()
+    {
+        PhysicsRig.artOutput.ArtOutputUpdate(PhysicsRig);
+        PhysicsRig.artOutput.ArtOutputLateUpdate(PhysicsRig);
     }
 
     private Vector2 TransformVector2(Vector2 vector, Transform inTransform, Transform outTransform)
