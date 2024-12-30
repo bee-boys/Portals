@@ -33,6 +33,12 @@ public class Teleportable : MonoBehaviour
 
     public bool HasClone => _cloneRenderer && _cloneRenderer.OriginalTransform && _cloneRenderer.CloneTransform;
 
+    public float EnterSign => _initialSign;
+
+    public Portal InPortal => _inPortal;
+
+    public Portal OutPortal => _outPortal;
+
     protected Portal _inPortal = null;
     protected Portal _outPortal = null;
 
@@ -249,7 +255,12 @@ public class Teleportable : MonoBehaviour
 
     public float GetPortalSign(Portal portal)
     {
-        return Mathf.Sign(portal.transform.InverseTransformPoint(GetAnchor()).z);
+        return GetPortalSign(portal, GetAnchor());
+    }
+
+    public float GetPortalSign(Portal portal, Vector3 point)
+    {
+        return Mathf.Sign(portal.transform.InverseTransformPoint(point).z);
     }
 
     public Matrix4x4 CalculateTeleportedMatrix(Matrix4x4 matrix, Transform inTransform, Transform outTransform)

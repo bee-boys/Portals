@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 
 using Il2CppSLZ.Marrow;
+using Il2CppSLZ.Marrow.AI;
+using Il2CppSLZ.Marrow.Data;
+
+using Portals.MonoBehaviours;
 
 using UnityEngine;
 
@@ -15,6 +13,37 @@ namespace Portals.Patching;
 [HarmonyPatch(typeof(Projectile))]
 public static class ProjectilePatches
 {
+    [HarmonyPostfix]
+    [HarmonyPatch(nameof(Projectile.SetBulletObject))]
+    public static void SetBulletObject(Projectile __instance, ProjectileData data, Transform startTransform, Vector3 locPos, Quaternion locRot, Rigidbody EmittingRigidbody, TriggerRefProxy proxy)
+    {
+        if (data == null)
+        {
+            return;
+        }
+
+        var gun = startTransform.GetComponentInParent<Gun>();
+
+        if (gun == null)
+        {
+            return;
+        }
+
+        var entity = gun.GetComponent<TeleportableEntity>();
+
+        if (entity == null || !entity.HasPortals)
+        {
+            return;
+        }
+
+        float sign = entity.GetPortalSign(entity.InPortal, startTransform.position);
+
+        if (entity.PassedThrough(entity.EnterSign, sign))
+        {
+            Teleport(__instance, entity.InPortal, entity.OutPortal);
+        }
+    }
+
     [HarmonyPrefix]
     [HarmonyPatch(nameof(Projectile.Update))]
     public static void UpdatePrefix(Projectile __instance, ref Vector3 __state)
@@ -37,23 +66,28 @@ public static class ProjectilePatches
 
             if (portal != null && portal.OtherPortal != null)
             {
-                var inMatrix = portal.transform.localToWorldMatrix;
-                var outMatrix = portal.OtherPortal.transform.localToWorldMatrix;
-
-                var matrix = Matrix4x4.TRS(end, Quaternion.LookRotation(__instance._direction), Vector3.one);
-
-                matrix = outMatrix * (inMatrix.inverse * matrix);
-
-                __instance.transform.position = matrix.GetPosition();
-                __instance._direction = matrix.rotation * Vector3.forward;
-
-                var scale = matrix.lossyScale;
-
-                __instance.Mass *= scale.x * scale.y * scale.z;
-                __instance.currentSpeed *= scale.z;
-
-                __instance.trail.Clear();
+                Teleport(__instance, portal, portal.OtherPortal);
             }
         }
+    }
+
+    private static void Teleport(Projectile projectile, Portal inPortal, Portal outPortal)
+    {
+        var inMatrix = inPortal.transform.localToWorldMatrix;
+        var outMatrix = outPortal.transform.localToWorldMatrix;
+
+        var matrix = Matrix4x4.TRS(projectile.transform.position, Quaternion.LookRotation(projectile._direction), Vector3.one);
+
+        matrix = outMatrix * (inMatrix.inverse * matrix);
+
+        projectile.transform.position = matrix.GetPosition();
+        projectile._direction = matrix.rotation * Vector3.forward;
+
+        var scale = matrix.lossyScale;
+
+        projectile.Mass *= scale.x * scale.y * scale.z;
+        projectile.currentSpeed *= scale.z;
+
+        projectile.trail.Clear();
     }
 }
