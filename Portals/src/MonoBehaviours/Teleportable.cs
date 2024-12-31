@@ -8,6 +8,8 @@ using MelonLoader;
 using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.Marrow;
 
+using Il2CppInterop.Runtime.Attributes;
+
 using Portals.Rendering;
 
 namespace Portals.MonoBehaviours;
@@ -108,12 +110,14 @@ public class Teleportable : MonoBehaviour
 
     protected virtual void SetupBody(MarrowBody marrowBody)
     {
-        var tracker = marrowBody.gameObject.AddComponent<TeleportableBody>();
+        var body = marrowBody.gameObject.AddComponent<TeleportableBody>();
 
-        _bodies.Add(tracker);
+        _bodies.Add(body);
 
-        tracker.OnPortalEnterEvent += OnPortalEnterCallback;
-        tracker.OnPortalExitEvent += OnPortalExitCallback;
+        body.OnPortalEnterEvent += OnPortalEnterCallback;
+        body.OnPortalExitEvent += OnPortalExitCallback;
+
+        body.Teleportable = this;
     }
 
     protected int _portalCount = 0;
@@ -160,12 +164,23 @@ public class Teleportable : MonoBehaviour
         _inPortal = inPortal;
         _outPortal = outPortal;
 
-        _initialSign = GetPortalSign(inPortal);
+        var grabbingTeleportable = GetGrabbingTeleportable();
+
+        if (grabbingTeleportable)
+        {
+            _initialSign = GetPortalSign(inPortal, grabbingTeleportable.GetAnchor());
+        }
+        else
+        {
+            _initialSign = GetPortalSign(inPortal);
+        }
 
         if (_cloneRenderer)
         {
             _cloneRenderer.Show();
         }
+
+        OnPortalsChanged(inPortal, outPortal);
     }
 
     public void ClearPortals()
@@ -180,7 +195,11 @@ public class Teleportable : MonoBehaviour
         {
             _cloneRenderer.Hide();
         }
+
+        OnPortalsChanged(null, null);
     }
+
+    protected virtual void OnPortalsChanged(Portal inPortal, Portal outPortal) { }
 
     public void CalculateTrackers()
     {
@@ -282,19 +301,61 @@ public class Teleportable : MonoBehaviour
             return HostManager.grabbedHosts.Count > 0;
         }
 
-        foreach (var tracker in Bodies)
+        foreach (var body in Bodies)
         {
-            if (!tracker.HasHost)
+            if (!body.HasHost)
             {
                 continue;
             }
 
-            if (tracker.Host.HandCount() > 0)
+            if (body.Host.HandCount() > 0)
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    [HideFromIl2Cpp]
+    public Teleportable GetGrabbingTeleportable()
+    {
+        if (HasHostManager)
+        {
+            foreach (var host in HostManager.grabbedHosts)
+            {
+                foreach (var hand in host._hands)
+                {
+                    var teleportable = hand.GetComponentInParent<Teleportable>();
+
+                    if (teleportable)
+                    {
+                        return teleportable;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        foreach (var body in Bodies)
+        {
+            if (!body.HasHost)
+            {
+                continue;
+            }
+
+            foreach (var hand in body.Host._hands)
+            {
+                var teleportable = hand.GetComponentInParent<Teleportable>();
+
+                if (teleportable)
+                {
+                    return teleportable;
+                }
+            }
+        }
+
+        return null;
     }
 }

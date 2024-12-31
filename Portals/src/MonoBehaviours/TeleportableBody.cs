@@ -16,6 +16,9 @@ public class TeleportableBody : MonoBehaviour
 {
     public TeleportableBody(IntPtr intPtr) : base(intPtr) { }
 
+    [HideFromIl2Cpp]
+    public Teleportable Teleportable { get; set; } = null;
+
     public MarrowBody MarrowBody => _marrowBody;
     public InteractableHost Host => _host;
     public bool HasHost => _hasHost;
@@ -72,8 +75,8 @@ public class TeleportableBody : MonoBehaviour
     private void Awake()
     {
         _marrowBody = GetComponent<MarrowBody>();
-        _host = GetComponent<InteractableHost>();
-        _hasHost = _host != null;
+
+        GetHost();
 
         CreateTracker();
     }
@@ -99,6 +102,45 @@ public class TeleportableBody : MonoBehaviour
         if (current != null)
         {
             OnPortalEnterEvent?.Invoke(this, current);
+        }
+    }
+
+    private void GetHost()
+    {
+        _host = GetComponent<InteractableHost>();
+        _hasHost = _host != null;
+
+        if (!HasHost)
+        {
+            return;
+        }
+
+        _host.onHandAttachedDelegate += (Il2CppSystem.Action<InteractableHost, Hand>)OnHandAttached;
+        _host.onHandDetachedDelegate += (Il2CppSystem.Action<InteractableHost, Hand>)OnHandDetached;
+    }
+
+    private void OnHandAttached(InteractableHost host, Hand hand)
+    {
+        var handTeleportable = hand.GetComponentInParent<Teleportable>();
+
+        if (handTeleportable != null)
+        {
+            OverridePortal = handTeleportable.InPortal;
+        }
+    }
+
+    private void OnHandDetached(InteractableHost host, Hand hand)
+    {
+        if (host.HandCount() <= 0)
+        {
+            var handTeleportable = hand.GetComponentInParent<Teleportable>();
+
+            if (handTeleportable != null && handTeleportable.HasPortals && Teleportable.PassedThrough(handTeleportable.EnterSign, Teleportable.GetPortalSign(handTeleportable.InPortal)) && !Teleportable.IsGrabbed())
+            {
+                Teleportable.Teleport(handTeleportable.InPortal, handTeleportable.OutPortal);
+            }
+
+            OverridePortal = null;
         }
     }
 

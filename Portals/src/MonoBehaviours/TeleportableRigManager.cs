@@ -59,7 +59,7 @@ public class TeleportableRigManager : Teleportable
 
         CreateClone(_rigManager.gameObject);
 
-        var marrowEntity = _rigManager.physicsRig.marrowEntity;
+        var marrowEntity = PhysicsRig.marrowEntity;
 
         SetupEntity(marrowEntity);
     }
@@ -89,6 +89,13 @@ public class TeleportableRigManager : Teleportable
         }
 
         base.SetupBody(marrowBody);
+    }
+
+    protected override void OnPortalsChanged(Portal inPortal, Portal outPortal)
+    {
+        base.OnPortalsChanged(inPortal, outPortal);
+
+        TransferHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal);
     }
 
     private void OnPostLateUpdate()
@@ -155,19 +162,17 @@ public class TeleportableRigManager : Teleportable
 
     private void ToggleBallLoco(bool enabled)
     {
-        var physicsRig = RigManager.physicsRig;
-
         if (enabled)
         {
-            physicsRig.EnableBallLoco();
+            PhysicsRig.EnableBallLoco();
 
-            var pelvisPosition = physicsRig.m_pelvis.position;
-            physicsRig.feet.transform.position = pelvisPosition;
-            physicsRig.knee.transform.position = pelvisPosition;
+            var pelvisPosition = PhysicsRig.m_pelvis.position;
+            PhysicsRig.feet.transform.position = pelvisPosition;
+            PhysicsRig.knee.transform.position = pelvisPosition;
         }
         else
         {
-            physicsRig.DisableBallLoco();
+            PhysicsRig.DisableBallLoco();
         }
     }
 
@@ -213,7 +218,7 @@ public class TeleportableRigManager : Teleportable
         pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.transform, inPortalMatrix, outPortalMatrix));
         pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.vrRoot, inPortalMatrix, outPortalMatrix));
 
-        var anchor = RigManager.physicsRig.centerOfPressure;
+        var anchor = PhysicsRig.centerOfPressure;
 
         var newMatrix = CalculateTeleportedMatrix(anchor.localToWorldMatrix, inPortalMatrix, outPortalMatrix);
 
@@ -225,14 +230,14 @@ public class TeleportableRigManager : Teleportable
 
         var displaceTransform = SimpleTransform.Create(displacePosition, displaceRotation);
 
-        RigManager.controllerRig.Teleport(displaceTransform, false);
+        OpenControllerRig.Teleport(displaceTransform, false);
 
         foreach (var rig in RigManager.remapRigs)
         {
             rig.Teleport(displaceTransform, false);
         }
 
-        RigManager.physicsRig.Teleport(displaceTransform, false);
+        PhysicsRig.Teleport(displaceTransform, false);
 
         foreach (var pendingTransform in pendingTransforms)
         {
@@ -259,7 +264,7 @@ public class TeleportableRigManager : Teleportable
         remapRig._currentAcceleration = TransformVector2(remapRig._currentAcceleration, inTransform, outTransform);
         remapRig._effectiveAcceleration = TransformVector2(remapRig._effectiveAcceleration, inTransform, outTransform);
 
-        TeleportHands(RigManager.physicsRig.leftHand, RigManager.physicsRig.rightHand, inPortal, outPortal);
+        TeleportHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal, outPortal);
 
         _correctRotation = true;
 
@@ -346,10 +351,31 @@ public class TeleportableRigManager : Teleportable
         }
     }
 
+    private static void TransferHands(Hand leftHand, Hand rightHand, Portal portal)
+    {
+        var leftBody = GetTeleportableInHand(leftHand).body;
+        var rightBody = GetTeleportableInHand(rightHand).body;
+
+        if (leftBody == rightBody)
+        {
+            rightBody = null;
+        }
+
+        if (leftBody != null)
+        {
+            leftBody.OverridePortal = portal;
+        }
+
+        if (rightBody != null)
+        {
+            rightBody.OverridePortal = portal;
+        }
+    }
+
     private static void TeleportHands(Hand leftHand, Hand rightHand, Portal inPortal, Portal outPortal)
     {
-        var leftEntity = GetEntityInHand(leftHand);
-        var rightEntity = GetEntityInHand(rightHand);
+        var leftEntity = GetTeleportableInHand(leftHand).entity;
+        var rightEntity = GetTeleportableInHand(rightHand).entity;
 
         if (leftEntity == rightEntity)
         {
@@ -367,20 +393,20 @@ public class TeleportableRigManager : Teleportable
         }
     }
 
-    private static TeleportableEntity GetEntityInHand(Hand hand)
+    private static (TeleportableBody body, TeleportableEntity entity) GetTeleportableInHand(Hand hand)
     {
         var attachedObject = hand.m_CurrentAttachedGO;
 
         if (attachedObject == null)
         {
-            return null;
+            return (null, null);
         }
 
         var grip = Grip.Cache.Get(attachedObject);
 
         if (grip == null)
         {
-            return null;
+            return (null, null);
         }
 
         var entity = grip._marrowEntity;
@@ -388,7 +414,7 @@ public class TeleportableRigManager : Teleportable
         if (entity == null)
         {
             grip.ForceDetach(hand);
-            return null;
+            return (null, null);
         }
 
         var teleportableEntity = entity.GetComponent<TeleportableEntity>();
@@ -396,9 +422,17 @@ public class TeleportableRigManager : Teleportable
         if (teleportableEntity == null)
         {
             grip.ForceDetach(hand);
-            return null;
+            return (null, null);
         }
 
-        return teleportableEntity;
+        var teleportableBody = grip.Host.GetHostGameObject().GetComponent<TeleportableBody>();
+
+        if (teleportableBody == null)
+        {
+            grip.ForceDetach(hand);
+            return (null, null);
+        }
+
+        return (teleportableBody, teleportableEntity);
     }
 }
