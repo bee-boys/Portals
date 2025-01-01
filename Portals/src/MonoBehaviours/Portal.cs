@@ -43,9 +43,10 @@ public class Portal : MonoBehaviour
     private PortalCamera _leftEyeCamera = null;
     private PortalCamera _rightEyeCamera = null;
 
-    private Material _rendererMaterial = null;
+    private PortalNearPlane _leftEyeNearPlane = null;
+    private PortalNearPlane _rightEyeNearPlane = null;
 
-    private Mesh _nearPlaneMesh = null;
+    private Material _rendererMaterial = null;
 
     public void Awake()
     {
@@ -65,26 +66,22 @@ public class Portal : MonoBehaviour
         _rendererMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
         _rendererMaterial.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
 
-        var nearPlaneMaterial = PortalNearPlane.material;
-        nearPlaneMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
-        nearPlaneMaterial.SetTexture(PortalShaderConstants.RightEyeTextureName, _leftEyeCamera.TargetTexture);
+        _leftEyeNearPlane = new PortalNearPlane(PortalNearPlane.sharedMaterial.shader);
+        _rightEyeNearPlane = new PortalNearPlane(PortalNearPlane.sharedMaterial.shader);
 
-        _nearPlaneMesh = new Mesh();
-        PortalNearPlane.GetComponent<MeshFilter>().sharedMesh = _nearPlaneMesh;
+        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
+        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
 
-        PortalNearPlane.enabled = false;
-
-        PortalNearPlane.transform.parent = null;
+        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
+        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
 
         OpenControllerRigPatches.BeginCameraRendering += OnBeginCameraRendering;
     }
 
     public void OnDestroy()
     {
-        if (PortalNearPlane != null)
-        {
-            Destroy(PortalNearPlane.gameObject);
-        }
+        _leftEyeNearPlane.Destroy();
+        _rightEyeNearPlane.Destroy();
 
         _leftEyeCamera.Destroy();
         _rightEyeCamera.Destroy();
@@ -99,7 +96,8 @@ public class Portal : MonoBehaviour
 
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
     {
-        PortalNearPlane.enabled = false;
+        _leftEyeNearPlane.MeshRenderer.enabled = false;
+        _rightEyeNearPlane.MeshRenderer.enabled = false;
 
         if (PortalRenderer != null && !PortalRenderer.isVisible)
         {
@@ -148,7 +146,9 @@ public class Portal : MonoBehaviour
             newRotation = otherPortalTransform.rotation * (Quaternion.Inverse(transform.rotation) * newRotation);
         }
 
-        if (!PortalsMod.IsMockHMD && mainCamera.stereoTargetEye == StereoTargetEyeMask.Both)
+        float centerSign = Math.Sign(Vector3.Dot(otherPortalTransform.forward, otherPortalTransform.position - newPosition));
+
+        if (IsVR(mainCamera))
         {
             _rendererMaterial.SetInt("_ForceEye", 1);
 
@@ -162,14 +162,14 @@ public class Portal : MonoBehaviour
             var rightEyeWorld = offsetMatrix.MultiplyPoint(right);
 
             _leftEyeCamera.Transform.SetPositionAndRotation(leftEyeWorld, newRotation);
-            _leftEyeCamera.Camera.projectionMatrix = CalculateObliqueMatrix(mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Left), CalculatePortalClipPlane(otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera));
+            _leftEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Left, centerSign, otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera);
 
             _rendererMaterial.SetFloat("_EyeOverride", 0f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
 
             _rightEyeCamera.Transform.SetPositionAndRotation(rightEyeWorld, newRotation);
-            _rightEyeCamera.Camera.projectionMatrix = CalculateObliqueMatrix(mainCamera.GetStereoProjectionMatrix(Camera.StereoscopicEye.Right), CalculatePortalClipPlane(otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera));
+            _rightEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Right, centerSign, otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera);
 
             _rendererMaterial.SetFloat("_EyeOverride", 1f);
 
@@ -182,7 +182,7 @@ public class Portal : MonoBehaviour
         {
             _leftEyeCamera.Transform.SetPositionAndRotation(newPosition, newRotation);
 
-            var clipPlaneCameraSpace = CalculatePortalClipPlane(otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera);
+            var clipPlaneCameraSpace = CalculatePortalClipPlane(otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera, centerSign);
 
             var newMatrix = mainCamera.CalculateObliqueMatrix(clipPlaneCameraSpace);
 
@@ -191,182 +191,22 @@ public class Portal : MonoBehaviour
         }
     }
 
+    private bool IsVR(Camera camera)
+    {
+        return !PortalsMod.IsMockHMD && camera.stereoTargetEye == StereoTargetEyeMask.Both;
+    }
+
     private void DrawClippingPlane(Camera camera)
     {
-        var plane = new Plane(transform.forward, transform.position);
-
-        float camSign = Mathf.Sign(plane.GetDistanceToPoint(camera.transform.position));
-
-        float distance = camera.nearClipPlane + 0.001f;
-
-        var nearPlaneTransform = PortalNearPlane.transform;
-
-        nearPlaneTransform.position = camera.transform.position + camera.transform.forward * distance;
-        nearPlaneTransform.rotation = camera.transform.rotation;
-
-        var portalExtents = Size * 0.5f;
-        var portalV1 = new Vector3(-portalExtents.x, -portalExtents.y);
-        var portalV2 = new Vector3(portalExtents.x, -portalExtents.y);
-        var portalV3 = new Vector3(portalExtents.x, portalExtents.y);
-        var portalV4 = new Vector3(-portalExtents.x, portalExtents.y);
-
-        float minX = Mathf.Min(portalV1.x, portalV2.x, portalV3.x, portalV4.x);
-        float minY = Mathf.Min(portalV1.y, portalV2.y, portalV3.y, portalV4.y);
-        float maxX = Mathf.Max(portalV1.x, portalV2.x, portalV3.x, portalV4.x);
-        float maxY = Mathf.Max(portalV1.y, portalV2.y, portalV3.y, portalV4.y);
-
-        var camInPortal = transform.InverseTransformPoint(nearPlaneTransform.position);
-
-        if (camInPortal.x > maxX || camInPortal.x < minX || camInPortal.y > maxY || camInPortal.y < minY)
+        if (IsVR(camera))
         {
-            PortalNearPlane.enabled = false;
-            return;
+            _leftEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Left);
+            _rightEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Right);
         }
-
-        var dimensions = NearPlaneDimensions(camera, distance);
-
-        var v1 = nearPlaneTransform.TransformPoint(new Vector3(dimensions.xMin, dimensions.yMin, 0f));
-        var v2 = nearPlaneTransform.TransformPoint(new Vector3(dimensions.xMax, dimensions.yMin, 0f));
-        var v3 = nearPlaneTransform.TransformPoint(new Vector3(dimensions.xMax, dimensions.yMax, 0f));
-        var v4 = nearPlaneTransform.TransformPoint(new Vector3(dimensions.xMin, dimensions.yMax, 0f));
-        var v5 = v1;
-
-        Vector3[] vertices = new Vector3[] { v1, v2, v3, v4, v5 };
-        bool hasDiffSign = false;
-
-        for (var i = 0; i < vertices.Length; i++)
+        else
         {
-            var vert = vertices[i];
-
-            float sign = Mathf.Sign(plane.GetDistanceToPoint(vert));
-
-            if (sign != camSign)
-            {
-                hasDiffSign = true;
-            }
+            _leftEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Mono);
         }
-
-        PortalNearPlane.enabled = hasDiffSign;
-
-        if (!hasDiffSign)
-        {
-            return;
-        }
-
-        Vector3[] originals = new Vector3[] { v1, v2, v3, v4, v5 };
-        _nearPlaneMesh.triangles = new int[] { 2, 1, 0, 3, 2, 0 };
-
-        for (var i = 0; i < 4; i++)
-        {
-            var prevIndex = Mod(i - 1, 4);
-            var nextIndex = Mod(i + 1, 4);
-
-            var prev = originals[prevIndex];
-            var next = originals[nextIndex];
-            var current = originals[i];
-
-            var prevSign = Mathf.Sign(plane.GetDistanceToPoint(prev));
-            var nextSign = Mathf.Sign(plane.GetDistanceToPoint(next));
-            var currentSign = Mathf.Sign(plane.GetDistanceToPoint(current));
-
-            if (currentSign != camSign)
-            {
-                continue;
-            }
-
-            bool alreadyMoved = false;
-
-            if (currentSign != prevSign)
-            {
-                var ray = new Ray(current, (prev - current).normalized);
-
-                if (plane.Raycast(ray, out var prevEnter))
-                {
-                    vertices[i] = ray.origin + ray.direction * prevEnter;
-
-                    alreadyMoved = true;
-                }
-            }
-
-            if (currentSign != nextSign)
-            {
-                var ray = new Ray(current, (next - current).normalized);
-
-                if (plane.Raycast(ray, out var nextEnter))
-                {
-                    var index = i;
-
-                    if (alreadyMoved)
-                    {
-                        index = 4;
-                        _nearPlaneMesh.triangles = new int[] { 2, 1, 0, 3, 2, 0, i, nextIndex, 4 };
-                    }
-
-                    vertices[index] = ray.origin + ray.direction * nextEnter;
-
-                    alreadyMoved = true;
-                }
-            }
-
-            if (!alreadyMoved)
-            {
-                var cross = originals[Mod(i + 2, 4)];
-
-                var crossSign = Mathf.Sign(plane.GetDistanceToPoint(cross));
-
-                if (crossSign == currentSign)
-                {
-                    continue;
-                }
-
-                var crossRay = new Ray(current, (cross - current).normalized);
-
-                if (plane.Raycast(crossRay, out var crossEnter))
-                {
-                    vertices[i] = crossRay.origin + crossRay.direction * crossEnter;
-                    vertices[4] = vertices[i];
-                }
-            }
-        }
-
-        v1 = vertices[0];
-        v2 = vertices[1];
-        v3 = vertices[2];
-        v4 = vertices[3];
-        v5 = vertices[4];
-
-        v1 = nearPlaneTransform.InverseTransformPoint(v1);
-        v2 = nearPlaneTransform.InverseTransformPoint(v2);
-        v3 = nearPlaneTransform.InverseTransformPoint(v3);
-        v4 = nearPlaneTransform.InverseTransformPoint(v4);
-        v5 = nearPlaneTransform.InverseTransformPoint(v5);
-
-        Vector3[] _vertices = new Vector3[] { v1, v2, v3, v4, v5 };
-
-        _nearPlaneMesh.SetVertices(_vertices);
-
-        _nearPlaneMesh.RecalculateBounds();
-    }
-
-    private static int Mod(int a, int b)
-    {
-        return a - b * Mathf.FloorToInt((float)a / (float)b);
-    }
-
-    private static Rect NearPlaneDimensions(Camera cam, float distance)
-    {
-        Rect r = new Rect();
-        float a = distance;//get length
-        float A = cam.fieldOfView * 0.5f;//get angle
-        A = A * Mathf.Deg2Rad;//convert tor radians
-        float h = (Mathf.Tan(A) * a);//calc height
-        float w = (h / cam.pixelHeight) * cam.pixelWidth;//deduct width
-
-        r.xMin = -w;
-        r.xMax = w;
-        r.yMin = -h;
-        r.yMax = h;
-        return r;
     }
 
     private static Vector3 CalculateScaleDifference(Transform portal, Transform other)
@@ -379,10 +219,26 @@ public class Portal : MonoBehaviour
         return scaleDifference;
     }
 
-    private static Vector4 CalculatePortalClipPlane(Transform otherPortalTransform, Transform portalCameraTransform, Camera portalCamera)
+    private static Matrix4x4 CalculateEyeProjectionMatrix(Camera camera, Camera.StereoscopicEye eye, float centerSign, Transform otherPortalTransform, Transform portalCameraTransform, Camera portalCamera)
     {
-        float sign = Math.Sign(Vector3.Dot(otherPortalTransform.forward, otherPortalTransform.position - portalCameraTransform.position));
+        var stereoProjectionMatrix = camera.GetStereoProjectionMatrix(eye);
 
+        float eyeSign = Math.Sign(Vector3.Dot(otherPortalTransform.forward, otherPortalTransform.position - portalCameraTransform.position));
+
+        if (!Mathf.Approximately(eyeSign, centerSign))
+        {
+            return stereoProjectionMatrix;
+        }
+
+        var clipPlane = CalculatePortalClipPlane(otherPortalTransform, portalCameraTransform, portalCamera, eyeSign);
+
+        var obliqueMatrix = CalculateObliqueMatrix(stereoProjectionMatrix, clipPlane);
+
+        return obliqueMatrix;
+    }
+
+    private static Vector4 CalculatePortalClipPlane(Transform otherPortalTransform, Transform portalCameraTransform, Camera portalCamera, float sign)
+    {
         if (Mathf.Approximately(sign, 0f))
         {
             sign = 1f;

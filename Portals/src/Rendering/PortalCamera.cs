@@ -10,22 +10,24 @@ public class PortalCamera
 
     public Transform Transform { get; set; }
 
+    public GameObject GameObject { get; set; }
+
     public RenderTexture TargetTexture { get; set; }
 
     public Camera.StereoscopicEye Eye { get; set; }
 
     public PortalCamera(Portal portal, Camera.StereoscopicEye eye)
     {
-        var cameraGameObject = new GameObject($"{eye} Portal Camera");
-        Transform = cameraGameObject.transform;
+        GameObject = new GameObject($"{eye} Portal Camera");
+        Transform = GameObject.transform;
 
         Transform.parent = portal.transform;
 
-        Camera = cameraGameObject.AddComponent<Camera>();
+        Camera = GameObject.AddComponent<Camera>();
         Camera.enabled = false;
         Camera.nearClipPlane = 0.01f;
 
-        var data = cameraGameObject.AddComponent<UniversalAdditionalCameraData>();
+        var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
         data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
         data.antialiasingQuality = AntialiasingQuality.Low;
 
@@ -58,7 +60,7 @@ public class PortalCamera
 
     public void Destroy()
     {
-        GameObject.Destroy(Camera);
+        GameObject.Destroy(GameObject);
 
         TargetTexture.Release();
         TargetTexture = null;
