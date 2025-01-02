@@ -43,6 +43,11 @@ public class PortalNearPlane
         GameObject.Destroy(GameObject);
     }
 
+    public void Hide()
+    {
+        MeshRenderer.enabled = false;
+    }
+
     public void Render(Portal portal, Camera camera, Camera.MonoOrStereoscopicEye eye)
     {
         var portalTransform = portal.transform;

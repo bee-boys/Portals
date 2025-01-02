@@ -23,8 +23,11 @@ public class Portal : MonoBehaviour
     public Portal(IntPtr intPtr) : base(intPtr) { }
 
     public Il2CppReferenceField<MonoBehaviour> otherPortal;
-    public Il2CppReferenceField<Renderer> portalRenderer;
+    public Il2CppReferenceField<Renderer> portalFrontRenderer;
+    public Il2CppReferenceField<Renderer> portalBackRenderer;
     public Il2CppReferenceField<Renderer> portalNearPlane;
+    public Il2CppReferenceField<Renderer> portalCorridor;
+    public Il2CppReferenceField<Transform> portalCorridorParent;
     public Il2CppValueField<Vector2> size;
 
 
@@ -32,10 +35,17 @@ public class Portal : MonoBehaviour
     public Portal OtherPortal => otherPortal.Get().TryCast<Portal>();
 
     [HideFromIl2Cpp]
-    public Renderer PortalRenderer => portalRenderer.Get();
+    public Renderer PortalFrontRenderer => portalFrontRenderer.Get();
+
+    [HideFromIl2Cpp]
+    public Renderer PortalBackRenderer => portalBackRenderer.Get();
 
     [HideFromIl2Cpp]
     public Renderer PortalNearPlane => portalNearPlane.Get();
+
+    public Renderer PortalCorridor => portalCorridor.Get();
+
+    public Transform PortalCorridorParent => portalCorridorParent.Get();
 
     [HideFromIl2Cpp]
     public Vector2 Size => size.Get();
@@ -61,20 +71,25 @@ public class Portal : MonoBehaviour
         _leftEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Left);
         _rightEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Right);
 
-        _rendererMaterial = PortalRenderer.material;
+        _rendererMaterial = PortalFrontRenderer.material;
 
         _rendererMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
         _rendererMaterial.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
 
+        PortalBackRenderer.sharedMaterial = _rendererMaterial;
+
         _leftEyeNearPlane = new PortalNearPlane(PortalNearPlane.sharedMaterial.shader);
         _rightEyeNearPlane = new PortalNearPlane(PortalNearPlane.sharedMaterial.shader);
 
-        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
-        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
+        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureName, _leftEyeCamera.TargetTexture);
+        _leftEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeName, 0f);
 
-        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
-        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
+        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureName, _rightEyeCamera.TargetTexture);
+        _rightEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeName, 1f);
 
+        PortalCorridor.enabled = false;
+
+        OpenControllerRigPatches.PreBeginCameraRendering += OnPreBeginCameraRendering;
         OpenControllerRigPatches.BeginCameraRendering += OnBeginCameraRendering;
     }
 
@@ -86,6 +101,7 @@ public class Portal : MonoBehaviour
         _leftEyeCamera.Destroy();
         _rightEyeCamera.Destroy();
 
+        OpenControllerRigPatches.PreBeginCameraRendering -= OnPreBeginCameraRendering;
         OpenControllerRigPatches.BeginCameraRendering -= OnBeginCameraRendering;
     }
 
@@ -94,12 +110,19 @@ public class Portal : MonoBehaviour
         return cam == _leftEyeCamera.Camera || cam == _rightEyeCamera.Camera;
     }
 
+    private void OnPreBeginCameraRendering(ScriptableRenderContext src, Camera cam)
+    {
+        _leftEyeNearPlane.Hide();
+        _rightEyeNearPlane.Hide();
+        PortalCorridor.enabled = false;
+
+        PortalFrontRenderer.enabled = true;
+        PortalBackRenderer.enabled = true;
+    }
+
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
     {
-        _leftEyeNearPlane.MeshRenderer.enabled = false;
-        _rightEyeNearPlane.MeshRenderer.enabled = false;
-
-        if (PortalRenderer != null && !PortalRenderer.isVisible)
+        if (PortalFrontRenderer != null && !PortalFrontRenderer.isVisible && !PortalBackRenderer.isVisible)
         {
             return;
         }
@@ -198,10 +221,64 @@ public class Portal : MonoBehaviour
 
     private void DrawClippingPlane(Camera camera)
     {
+        var cameraInPortal = transform.InverseTransformPoint(camera.transform.position);
+        var extents = Size * 0.5f;
+
+        // Not in bounds
+        if (cameraInPortal.x < -extents.x || cameraInPortal.x > extents.x || cameraInPortal.y < -extents.y || cameraInPortal.y > extents.y)
+        {
+            return;
+        }
+
         if (IsVR(camera))
         {
-            _leftEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Left);
-            _rightEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Right);
+            float centerSign = Math.Sign(Vector3.Dot(transform.forward, transform.position - camera.transform.position));
+
+            if (centerSign <= 0f)
+            {
+                PortalCorridorParent.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                PortalCorridorParent.localRotation = Quaternion.AngleAxis(180f, Vector3.up);
+            }
+
+            var (left, right) = GetEyes();
+
+            float leftEyeSign = Math.Sign(Vector3.Dot(transform.forward, transform.position - camera.transform.localToWorldMatrix.MultiplyPoint(left)));
+            float rightEyeSign = Math.Sign(Vector3.Dot(transform.forward, transform.position - camera.transform.localToWorldMatrix.MultiplyPoint(right)));
+
+            bool isInFront = centerSign <= 0f;
+
+            if (Mathf.Approximately(leftEyeSign, centerSign))
+            {
+                _leftEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Left);
+            }
+            else
+            {
+                PortalCorridor.enabled = true;
+
+                PortalCorridor.material.SetTexture(PortalShaderConstants.MainTextureName, _leftEyeCamera.TargetTexture);
+                PortalCorridor.material.SetFloat(PortalShaderConstants.TargetEyeName, 0f);
+
+                PortalFrontRenderer.enabled = isInFront;
+                PortalBackRenderer.enabled = !isInFront;
+            }
+
+            if (Mathf.Approximately(rightEyeSign, centerSign))
+            {
+                _rightEyeNearPlane.Render(this, camera, Camera.MonoOrStereoscopicEye.Right);
+            }
+            else
+            {
+                PortalCorridor.enabled = true;
+
+                PortalCorridor.material.SetTexture(PortalShaderConstants.MainTextureName, _rightEyeCamera.TargetTexture);
+                PortalCorridor.material.SetFloat(PortalShaderConstants.TargetEyeName, 1f);
+
+                PortalFrontRenderer.enabled = isInFront;
+                PortalBackRenderer.enabled = !isInFront;
+            }
         }
         else
         {

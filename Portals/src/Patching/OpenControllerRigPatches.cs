@@ -12,6 +12,7 @@ namespace Portals.Patching;
 [HarmonyPatch(typeof(OpenControllerRig))]
 public static class OpenControllerRigPatches
 {
+    public static event Action<ScriptableRenderContext, Camera> PreBeginCameraRendering;
     public static event Action<ScriptableRenderContext, Camera> BeginCameraRendering;
 
     [HarmonyPostfix]
@@ -20,6 +21,8 @@ public static class OpenControllerRigPatches
     {
         try
         {
+            PreBeginCameraRendering?.Invoke(ctx, cam);
+
             BeginCameraRendering?.Invoke(ctx, cam);
         }
         catch (Exception e)
