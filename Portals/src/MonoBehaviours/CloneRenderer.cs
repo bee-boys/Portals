@@ -68,6 +68,11 @@ public class CloneRenderer : MonoBehaviour
 
     private void CopyMeshRenderer(Transform clone, MeshRenderer renderer, MeshFilter filter)
     {
+        if (IsMaterialBlacklisted(renderer.sharedMaterial))
+        {
+            return;
+        }
+
         var cloneFilter = clone.gameObject.AddComponent<MeshFilter>();
 
         cloneFilter.sharedMesh = filter.sharedMesh;
@@ -84,6 +89,11 @@ public class CloneRenderer : MonoBehaviour
 
     private void CopySkinnedMeshRenderer(Transform clone, SkinnedMeshRenderer renderer)
     {
+        if (IsMaterialBlacklisted(renderer.sharedMaterial))
+        {
+            return;
+        }
+
         var cloneFilter = clone.gameObject.AddComponent<MeshFilter>();
         var cloneRenderer = clone.gameObject.AddComponent<MeshRenderer>();
 
@@ -96,6 +106,23 @@ public class CloneRenderer : MonoBehaviour
         _originalSkinnedRenderers.Add(renderer);
         _skinnedToCloneFilter[renderer] = cloneFilter;
         _skinnedToCloneRenderer[renderer] = cloneRenderer;
+    }
+
+    private static bool IsMaterialBlacklisted(Material material)
+    {
+        // Ignore null materials
+        if (material == null)
+        {
+            return false;
+        }
+
+        // Don't copy interactable icons
+        if (material.shader.name == "SLZ/Icon Billboard")
+        {
+            return true;
+        }
+
+        return false;
     }
 
     public void Show()
