@@ -95,25 +95,6 @@ public class PortalNearPlane
         Transform.position = center;
         Transform.rotation = cameraTransform.rotation;
 
-        var portalExtents = portal.Size * 0.5f;
-        var portalV1 = new Vector3(-portalExtents.x, -portalExtents.y);
-        var portalV2 = new Vector3(portalExtents.x, -portalExtents.y);
-        var portalV3 = new Vector3(portalExtents.x, portalExtents.y);
-        var portalV4 = new Vector3(-portalExtents.x, portalExtents.y);
-
-        float minX = Mathf.Min(portalV1.x, portalV2.x, portalV3.x, portalV4.x);
-        float minY = Mathf.Min(portalV1.y, portalV2.y, portalV3.y, portalV4.y);
-        float maxX = Mathf.Max(portalV1.x, portalV2.x, portalV3.x, portalV4.x);
-        float maxY = Mathf.Max(portalV1.y, portalV2.y, portalV3.y, portalV4.y);
-
-        var camInPortal = portalTransform.InverseTransformPoint(Transform.position);
-
-        if (camInPortal.x > maxX || camInPortal.x < minX || camInPortal.y > maxY || camInPortal.y < minY)
-        {
-            MeshRenderer.enabled = false;
-            return;
-        }
-
         Vector3[] vertices = new Vector3[] { v1, v2, v3, v4, v5 };
         bool hasDiffSign = false;
 
