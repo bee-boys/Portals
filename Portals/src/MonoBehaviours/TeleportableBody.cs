@@ -135,7 +135,7 @@ public class TeleportableBody : MonoBehaviour
         {
             var handTeleportable = hand.GetComponentInParent<Teleportable>();
 
-            if (handTeleportable != null && handTeleportable.HasPortals && Teleportable.PassedThrough(handTeleportable.EnterSign, Teleportable.GetPortalSign(handTeleportable.InPortal)) && !Teleportable.IsGrabbed())
+            if (HasRigidbody && handTeleportable != null && handTeleportable.HasPortals && Teleportable.PassedThrough(handTeleportable.EnterSign, Teleportable.GetPortalSign(handTeleportable.InPortal)) && !Teleportable.IsGrabbed())
             {
                 Teleportable.Teleport(handTeleportable.InPortal, handTeleportable.OutPortal);
             }

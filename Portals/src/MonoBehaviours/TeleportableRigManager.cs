@@ -385,11 +385,15 @@ public class TeleportableRigManager : Teleportable
         if (leftEntity != null)
         {
             leftEntity.Teleport(inPortal, outPortal);
+            leftEntity.SetPortals(outPortal, inPortal);
+            leftEntity.UpdateClone();
         }
 
         if (rightEntity != null)
         {
             rightEntity.Teleport(inPortal, outPortal);
+            rightEntity.SetPortals(outPortal, inPortal);
+            rightEntity.UpdateClone();
         }
     }
 

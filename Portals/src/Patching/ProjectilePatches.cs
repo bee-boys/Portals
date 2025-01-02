@@ -13,9 +13,13 @@ namespace Portals.Patching;
 [HarmonyPatch(typeof(Projectile))]
 public static class ProjectilePatches
 {
-    [HarmonyPostfix]
+    public static bool TeleportOnUpdate { get; set; } = false;
+    public static Portal TargetInPortal { get; set; } = null;
+    public static Portal TargetOutPortal { get; set; } = null;
+
+    [HarmonyPrefix]
     [HarmonyPatch(nameof(Projectile.SetBulletObject))]
-    public static void SetBulletObject(Projectile __instance, ProjectileData data, Transform startTransform, Vector3 locPos, Quaternion locRot, Rigidbody EmittingRigidbody, TriggerRefProxy proxy)
+    public static void SetBulletObjectPrefix(Projectile __instance, ProjectileData data, Transform startTransform, Vector3 locPos, Quaternion locRot, Rigidbody EmittingRigidbody, TriggerRefProxy proxy)
     {
         if (data == null)
         {
@@ -40,23 +44,30 @@ public static class ProjectilePatches
 
         if (entity.PassedThrough(entity.EnterSign, sign))
         {
-            Teleport(__instance, entity.InPortal, entity.OutPortal);
+            TeleportOnUpdate = true;
+            TargetInPortal = entity.InPortal;
+            TargetOutPortal = entity.OutPortal;
         }
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(nameof(Projectile.Update))]
-    public static void UpdatePrefix(Projectile __instance, ref Vector3 __state)
+    public static void UpdatePrefix(Projectile __instance)
     {
-        __state = __instance.transform.position;
-    }
+        if (TeleportOnUpdate)
+        {
+            TeleportOnUpdate = false;
 
-    [HarmonyPostfix]
-    [HarmonyPatch(nameof(Projectile.Update))]
-    public static void UpdatePostfix(Projectile __instance, ref Vector3 __state)
-    {
-        var start = __state;
-        var end = __instance.transform.position;
+            Teleport(__instance, TargetInPortal, TargetOutPortal);
+
+            TargetInPortal = null;
+            TargetOutPortal = null;
+
+            return;
+        }
+
+        var start = __instance.transform.position;
+        var end = __instance.transform.position + __instance._direction * __instance.currentSpeed * Time.deltaTime;
 
         var lineCast = Physics.Linecast(start, end, out var hitInfo, ~0, QueryTriggerInteraction.Collide);
 
