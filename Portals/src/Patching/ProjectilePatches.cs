@@ -84,8 +84,8 @@ public static class ProjectilePatches
 
     private static void Teleport(Projectile projectile, Portal inPortal, Portal outPortal)
     {
-        var inMatrix = inPortal.transform.localToWorldMatrix;
-        var outMatrix = outPortal.transform.localToWorldMatrix;
+        var inMatrix = inPortal.PortalEnterMatrix;
+        var outMatrix = outPortal.PortalExitMatrix;
 
         var matrix = Matrix4x4.TRS(projectile.transform.position, Quaternion.LookRotation(projectile._direction), Vector3.one);
 
