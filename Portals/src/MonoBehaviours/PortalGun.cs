@@ -8,6 +8,7 @@ using MelonLoader;
 
 using Portals.Pooling;
 using Il2CppInterop.Runtime.Attributes;
+using Il2CppSLZ.Marrow.Pool;
 
 namespace Portals.MonoBehaviours;
 
@@ -50,7 +51,8 @@ public class PortalGun : MonoBehaviour
     public Transform FirePoint => firePoint.Get();
     #endregion
 
-    private Portal _firedPortal = null;
+    private Portal _primaryPortal = null;
+    private Portal _secondaryPortal = null;
 
     #region METHODS
     public void Fire(bool primary) => Fire(primary, new Vector2(1f, 2f));
@@ -82,6 +84,17 @@ public class PortalGun : MonoBehaviour
 
         var rotation = Quaternion.LookRotation(hitInfo.normal, up);
 
+        if (primary && _primaryPortal)
+        {
+            _primaryPortal.GetComponent<Poolee>().Despawn();
+            _primaryPortal = null;
+        }
+        else if (!primary && _secondaryPortal)
+        {
+            _secondaryPortal.GetComponent<Poolee>().Despawn();
+            _secondaryPortal = null;
+        }
+
         PortalSpawner.Spawn(position, rotation, size, PortalShape, (portal) =>
         {
             portal.WallColliders.Clear();
@@ -107,20 +120,22 @@ public class PortalGun : MonoBehaviour
             {
                 portal.Surface.SetOutline(PrimaryOutsideColor);
                 portal.Surface.SetInside(PrimaryInsideColor);
+
+                _primaryPortal = portal;
             }
             else
             {
                 portal.Surface.SetOutline(SecondaryOutsideColor);
                 portal.Surface.SetInside(SecondaryInsideColor);
+
+                _secondaryPortal = portal;
             }
 
-            if (_firedPortal != null)
+            if (_primaryPortal && _secondaryPortal)
             {
-                _firedPortal.OtherPortal = portal;
-                portal.OtherPortal = _firedPortal;
+                _primaryPortal.OtherPortal = _secondaryPortal;
+                _secondaryPortal.OtherPortal = _primaryPortal;
             }
-
-            _firedPortal = portal;
         });
     }
     #endregion

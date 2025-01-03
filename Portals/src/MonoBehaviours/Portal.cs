@@ -170,14 +170,19 @@ public class Portal : MonoBehaviour
 
         for (var i = initialValue; i >= 0; i--)
         {
-            float percent = Math.Clamp(i / (float)initialValue, 0f, 1f);
+            float percent = 0f;
 
-            Surface.SurfaceMaterial.SetFloat("_Fade", percent);
+            if (iterations > 1)
+            {
+                percent = 1f - Math.Clamp(i / (float)initialValue, 0f, 1f);
+            }
+
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, percent);
 
             ApplyPosition(src, cam, i);
         }
 
-        Surface.SurfaceMaterial.SetFloat("_Fade", 0f);
+        Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 1f);
 
         DrawClippingPlane(cam);
     }
