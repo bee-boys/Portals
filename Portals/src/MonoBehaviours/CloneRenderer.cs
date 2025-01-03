@@ -40,6 +40,23 @@ public class CloneRenderer : MonoBehaviour
             return;
         }
 
+        // Check for LODs
+        var name = original.name;
+        var lodNameIndex = name.LastIndexOf("_LOD");
+
+        if (lodNameIndex != -1)
+        {
+            var numberIndex = lodNameIndex + 4;
+
+            var substring = name[numberIndex..];
+
+            // Ignore all LODs except for the first one
+            if (int.TryParse(substring, out var lodNumber) && lodNumber > 0)
+            {
+                return;
+            }
+        }
+
         var meshFilter = original.GetComponent<MeshFilter>();
         var meshRenderer = original.GetComponent<MeshRenderer>();
 
