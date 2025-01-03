@@ -235,7 +235,7 @@ public class Portal : MonoBehaviour
 
             var clipPlaneCameraSpace = CalculatePortalClipPlane(otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera, centerSign);
 
-            var newMatrix = mainCamera.CalculateObliqueMatrix(clipPlaneCameraSpace);
+            var newMatrix = CalculateObliqueMatrix(mainCamera.projectionMatrix, clipPlaneCameraSpace);
 
             _leftEyeCamera.Camera.projectionMatrix = newMatrix;
 
