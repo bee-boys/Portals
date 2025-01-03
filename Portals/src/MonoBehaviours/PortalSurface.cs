@@ -15,6 +15,8 @@ public class PortalSurface : MonoBehaviour
     public PortalSurface(IntPtr intPtr) : base(intPtr) { }
 
     #region FIELD INJECTION
+    public Il2CppReferenceField<Transform> centerPivot;
+
     public Il2CppReferenceField<Renderer> frontRenderer;
 
     public Il2CppReferenceField<Renderer> backRenderer;
@@ -31,6 +33,9 @@ public class PortalSurface : MonoBehaviour
     #endregion
 
     #region PROPERTIES
+    [HideFromIl2Cpp]
+    public Transform CenterPivot => centerPivot.Get();
+
     [HideFromIl2Cpp]
     public Renderer FrontRenderer => frontRenderer.Get();
 
