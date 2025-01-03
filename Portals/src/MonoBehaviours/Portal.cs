@@ -47,6 +47,8 @@ public class Portal : MonoBehaviour
         set
         {
             _otherPortal = value;
+
+            Surface.Open = value != null;
         }
     }
 
@@ -150,6 +152,12 @@ public class Portal : MonoBehaviour
 
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
     {
+        // Don't render if there isn't a portal to render!
+        if (!OtherPortal)
+        {
+            return;
+        }
+
         if (Surface.FrontRenderer != null && !Surface.FrontRenderer.isVisible && !Surface.BackRenderer.isVisible)
         {
             return;
@@ -167,6 +175,7 @@ public class Portal : MonoBehaviour
 
         int iterations = 1;
         int initialValue = iterations - 1;
+        float openPercent = Surface.OpenPercent;
 
         for (var i = initialValue; i >= 0; i--)
         {
@@ -174,7 +183,7 @@ public class Portal : MonoBehaviour
 
             if (iterations > 1)
             {
-                percent = 1f - Math.Clamp(i / (float)initialValue, 0f, 1f);
+                percent = openPercent * (1f - Math.Clamp(i / (float)initialValue, 0f, 1f));
             }
 
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, percent);
@@ -182,7 +191,7 @@ public class Portal : MonoBehaviour
             ApplyPosition(src, cam, i);
         }
 
-        Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 1f);
+        Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, openPercent);
 
         DrawClippingPlane(cam);
     }
