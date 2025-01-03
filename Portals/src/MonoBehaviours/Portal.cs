@@ -201,6 +201,9 @@ public class Portal : MonoBehaviour
 
         if (IsVR(mainCamera))
         {
+            CopyValues(mainCamera, _leftEyeCamera.Camera);
+            CopyValues(mainCamera, _rightEyeCamera.Camera);
+
             Surface.SurfaceMaterial.SetInt("_ForceEye", 1);
 
             var (left, right) = GetEyes();
@@ -231,6 +234,8 @@ public class Portal : MonoBehaviour
         }
         else
         {
+            CopyValues(mainCamera, _leftEyeCamera.Camera);
+
             _leftEyeCamera.Transform.SetPositionAndRotation(newPosition, newRotation);
 
             var clipPlaneCameraSpace = CalculatePortalClipPlane(otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera, centerSign);
@@ -241,6 +246,13 @@ public class Portal : MonoBehaviour
 
             UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
         }
+    }
+
+    private void CopyValues(Camera from, Camera to)
+    {
+        to.nearClipPlane = from.nearClipPlane;
+        to.farClipPlane = from.farClipPlane;
+        to.fieldOfView = from.fieldOfView;
     }
 
     private bool IsVR(Camera camera)
