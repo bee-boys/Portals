@@ -57,13 +57,13 @@ public class Portal : MonoBehaviour
     public Vector2 Size => size.Get();
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalEnterMatrix => Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(transform.lossyScale.x, transform.lossyScale.y, 1f));
+    public Matrix4x4 PortalEnterMatrix => Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
 
     [HideFromIl2Cpp]
     public Matrix4x4 PortalEnterMatrixInverse => PortalEnterMatrix.inverse;
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalExitMatrix => Matrix4x4.TRS(transform.position, Quaternion.AngleAxis(180f, transform.up) * transform.rotation, new Vector3(transform.lossyScale.x, transform.lossyScale.y, 1f));
+    public Matrix4x4 PortalExitMatrix => Matrix4x4.TRS(transform.position, Quaternion.AngleAxis(180f, transform.up) * transform.rotation, transform.lossyScale);
 
     [HideFromIl2Cpp]
     public Matrix4x4 PortalExitMatrixInverse => PortalExitMatrix.inverse;
@@ -337,7 +337,7 @@ public class Portal : MonoBehaviour
         var selfScale = portal.lossyScale;
         var otherScale = other.lossyScale;
 
-        var scaleDifference = new Vector3(selfScale.x / otherScale.x, selfScale.y / otherScale.y, 1f);
+        var scaleDifference = new Vector3(selfScale.x / otherScale.x, selfScale.y / otherScale.y, selfScale.z / otherScale.z);
 
         return scaleDifference;
     }
