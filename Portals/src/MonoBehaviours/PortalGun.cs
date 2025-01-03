@@ -55,7 +55,7 @@ public class PortalGun : MonoBehaviour
     private Portal _secondaryPortal = null;
 
     #region METHODS
-    public void Fire(bool primary) => Fire(primary, new Vector2(1f, 2f));
+    public void Fire(bool primary) => Fire(primary, new Vector2(0.9f, 1.8f));
 
     public void Fire(bool primary, Vector2 size)
     {
