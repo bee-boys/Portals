@@ -71,18 +71,21 @@ public class PortalGun : MonoBehaviour
             return;
         }
 
-        var position = hitInfo.point + hitInfo.normal * 0.001f;
+        var normal = hitInfo.normal;
+        var uphill = Vector3.Cross(normal, Vector3.Cross(normal, Vector3.down));
 
-        var up = Vector3.up;
+        var position = hitInfo.point + normal * 0.001f;
 
-        float dot = Vector3.Dot(hitInfo.normal, up);
+        var up = uphill;
 
-        if (dot > 0.95f || dot < -0.95f)
+        float dot = Vector3.Dot(normal, Vector3.up);
+
+        if (dot > 0.99f || dot < -0.99f)
         {
-            up = FirePoint.up;
+            up = (hitInfo.point - FirePoint.position).normalized;
         }
 
-        var rotation = Quaternion.LookRotation(hitInfo.normal, up);
+        var rotation = Quaternion.LookRotation(normal, up);
 
         if (primary && _primaryPortal)
         {
