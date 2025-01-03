@@ -29,7 +29,6 @@ public class PortalCamera
 
         Camera = GameObject.AddComponent<Camera>();
         Camera.enabled = false;
-        Camera.nearClipPlane = 0.01f;
         Camera.useOcclusionCulling = false;
         Camera.allowHDR = true;
         Camera.allowMSAA = false;
