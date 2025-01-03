@@ -46,8 +46,6 @@ public static class PortalSpawner
             var portal = result.GetComponentInChildren<Portal>();
 
             spawnCallback?.Invoke(portal);
-
-            PortalsMod.Logger.Msg($"Spawned {portal.name}");
         };
         awaiter.OnCompleted(continuation);
     }
