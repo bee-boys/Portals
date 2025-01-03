@@ -248,16 +248,6 @@ public class Portal : MonoBehaviour
         return !PortalsMod.IsMockHMD && camera.stereoTargetEye == StereoTargetEyeMask.Both;
     }
 
-    private Matrix4x4 CalculateCullingMatrix(Camera camera)
-    {
-        Matrix4x4 PMMatrixForCulling = camera.projectionMatrix;
-
-        PMMatrixForCulling.m22 = (camera.farClipPlane + camera.nearClipPlane) / (camera.nearClipPlane - camera.farClipPlane);
-        PMMatrixForCulling.m23 = (2 * camera.farClipPlane * camera.nearClipPlane) / (camera.nearClipPlane - camera.farClipPlane);
-
-        return PMMatrixForCulling * camera.worldToCameraMatrix;
-    }
-
     private void DrawClippingPlane(Camera camera)
     {
         var cameraInPortal = PortalEnterMatrixInverse.MultiplyPoint(camera.transform.position);
