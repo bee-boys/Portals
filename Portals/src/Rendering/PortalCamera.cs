@@ -4,6 +4,8 @@ using UnityEngine.XR;
 
 using Portals.MonoBehaviours;
 
+using System;
+
 namespace Portals.Rendering;
 
 public class PortalCamera
@@ -29,17 +31,19 @@ public class PortalCamera
         Camera.enabled = false;
         Camera.nearClipPlane = 0.01f;
         Camera.useOcclusionCulling = false;
+        Camera.allowHDR = true;
+        Camera.allowMSAA = false;
 
         var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
-        data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;
-        data.antialiasingQuality = AntialiasingQuality.Low;
+        data.antialiasing = AntialiasingMode.None;
+        data.allowXRRendering = false;
 
         Camera.clearFlags = CameraClearFlags.SolidColor;
         Camera.backgroundColor = Color.black;
 
-        var dimensions = GetDimensions();
+        var (width, height) = GetDimensions();
 
-        TargetTexture = new RenderTexture(dimensions.width, dimensions.height, 24, UnityEngine.Experimental.Rendering.DefaultFormat.HDR);
+        TargetTexture = new RenderTexture(width, height, 24);
         Camera.targetTexture = TargetTexture;
 
         Camera.stereoTargetEye = StereoTargetEyeMask.None;
@@ -47,7 +51,7 @@ public class PortalCamera
         Eye = eye;
     }
 
-    private (int width, int height) GetDimensions()
+    private static (int width, int height) GetDimensions()
     {
         int width = XRSettings.eyeTextureWidth;
         int height = XRSettings.eyeTextureHeight;
@@ -58,7 +62,9 @@ public class PortalCamera
             height = Screen.height;
         }
 
-        return (width, height);
+        var min = Math.Min(width, height);
+
+        return (min, min);
     }
 
     public void Destroy()
