@@ -2,6 +2,8 @@
 
 using UnityEngine;
 
+using Portals.MonoBehaviours;
+
 namespace Portals.Rendering;
 
 public class PortalNearPlane

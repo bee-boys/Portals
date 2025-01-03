@@ -1,11 +1,13 @@
-﻿namespace Portals.Rendering;
+﻿using UnityEngine;
+
+namespace Portals.Rendering;
 
 public static class PortalShaderConstants
 {
-    public const string LeftEyeTextureName = "_LeftEyeTexture";
-    public const string RightEyeTextureName = "_RightEyeTexture";
+    public static readonly int LeftEyeTextureId = Shader.PropertyToID("_LeftEyeTexture");
+    public static readonly int RightEyeTextureId = Shader.PropertyToID("_RightEyeTexture");
 
-    public const string MainTextureName = "_MainTex";
+    public static readonly int MainTextureId = Shader.PropertyToID("_MainTex");
 
-    public const string TargetEyeName = "_TargetEye";
+    public static readonly int TargetEyeId = Shader.PropertyToID("_TargetEye");
 }

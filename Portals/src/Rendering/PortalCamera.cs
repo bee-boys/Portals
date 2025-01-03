@@ -2,6 +2,8 @@
 using UnityEngine.Rendering.Universal;
 using UnityEngine.XR;
 
+using Portals.MonoBehaviours;
+
 namespace Portals.Rendering;
 
 public class PortalCamera
@@ -26,6 +28,7 @@ public class PortalCamera
         Camera = GameObject.AddComponent<Camera>();
         Camera.enabled = false;
         Camera.nearClipPlane = 0.01f;
+        Camera.useOcclusionCulling = false;
 
         var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
         data.antialiasing = AntialiasingMode.SubpixelMorphologicalAntiAliasing;

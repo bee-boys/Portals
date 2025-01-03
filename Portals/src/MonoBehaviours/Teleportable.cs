@@ -28,6 +28,7 @@ public class Teleportable : MonoBehaviour
     private InteractableHostManager _hostManager = null;
     private bool _hasHostManager = false;
 
+    [HideFromIl2Cpp]
     public List<TeleportableBody> Bodies => _bodies;
     private List<TeleportableBody> _bodies = new();
 
@@ -161,6 +162,25 @@ public class Teleportable : MonoBehaviour
             return;
         }
 
+        if (_inPortal != null)
+        {
+            foreach (var body in Bodies)
+            {
+                foreach (var collider in _inPortal.WallColliders)
+                {
+                    body.MarrowBody.IgnoreCollision(collider, false);
+                }
+            }
+        }
+
+        foreach (var body in Bodies)
+        {
+            foreach (var collider in inPortal.WallColliders)
+            {
+                body.MarrowBody.IgnoreCollision(collider, true);
+            }
+        }
+
         _inPortal = inPortal;
         _outPortal = outPortal;
 
@@ -185,6 +205,17 @@ public class Teleportable : MonoBehaviour
 
     public void ClearPortals()
     {
+        if (_inPortal != null)
+        {
+            foreach (var body in Bodies)
+            {
+                foreach (var collider in _inPortal.WallColliders)
+                {
+                    body.MarrowBody.IgnoreCollision(collider, false);
+                }
+            }
+        }
+
         _inPortal = null;
         _outPortal = null;
 
@@ -239,7 +270,7 @@ public class Teleportable : MonoBehaviour
             return;
         }
 
-        var cloneMatrix = CalculateTeleportedMatrix(_cloneRenderer.OriginalTransform.localToWorldMatrix, _inPortal.transform, _outPortal.transform);
+        var cloneMatrix = CalculateTeleportedMatrix(_cloneRenderer.OriginalTransform.localToWorldMatrix, _inPortal.PortalEnterMatrix, _outPortal.PortalExitMatrix);
 
         _cloneRenderer.CloneTransform.position = cloneMatrix.GetPosition();
         _cloneRenderer.CloneTransform.rotation = cloneMatrix.rotation;
@@ -256,11 +287,6 @@ public class Teleportable : MonoBehaviour
     public float GetPortalSign(Portal portal, Vector3 point)
     {
         return Mathf.Sign(portal.transform.InverseTransformPoint(point).z);
-    }
-
-    public Matrix4x4 CalculateTeleportedMatrix(Matrix4x4 matrix, Transform inTransform, Transform outTransform)
-    {
-        return CalculateTeleportedMatrix(matrix, inTransform.localToWorldMatrix, outTransform.localToWorldMatrix);
     }
 
     public Matrix4x4 CalculateTeleportedMatrix(Matrix4x4 matrix, Matrix4x4 inMatrix, Matrix4x4 outMatrix)

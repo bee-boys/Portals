@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -15,40 +17,60 @@ using Portals.Rendering;
 
 using UnityEngine.XR;
 
-namespace Portals;
+namespace Portals.MonoBehaviours;
 
 [RegisterTypeInIl2Cpp]
 public class Portal : MonoBehaviour
 {
     public Portal(IntPtr intPtr) : base(intPtr) { }
 
+    #region FIELD INJECTION
     public Il2CppReferenceField<MonoBehaviour> otherPortal;
-    public Il2CppReferenceField<Renderer> portalFrontRenderer;
-    public Il2CppReferenceField<Renderer> portalBackRenderer;
-    public Il2CppReferenceField<Renderer> portalNearPlane;
-    public Il2CppReferenceField<Renderer> portalCorridor;
-    public Il2CppReferenceField<Transform> portalCorridorParent;
+    public Il2CppReferenceField<MonoBehaviour> surface;
     public Il2CppValueField<Vector2> size;
+    #endregion
 
+    #region FIELDS
+    private Portal _otherPortal = null;
+
+    private PortalSurface _surface = null;
+    #endregion
+
+    #region PROPERTIES
+    [HideFromIl2Cpp]
+    public Portal OtherPortal 
+    {
+        get
+        {
+            return _otherPortal;
+        }
+        set
+        {
+            _otherPortal = value;
+        }
+    }
 
     [HideFromIl2Cpp]
-    public Portal OtherPortal => otherPortal.Get().TryCast<Portal>();
-
-    [HideFromIl2Cpp]
-    public Renderer PortalFrontRenderer => portalFrontRenderer.Get();
-
-    [HideFromIl2Cpp]
-    public Renderer PortalBackRenderer => portalBackRenderer.Get();
-
-    [HideFromIl2Cpp]
-    public Renderer PortalNearPlane => portalNearPlane.Get();
-
-    public Renderer PortalCorridor => portalCorridor.Get();
-
-    public Transform PortalCorridorParent => portalCorridorParent.Get();
+    public PortalSurface Surface => _surface;
 
     [HideFromIl2Cpp]
     public Vector2 Size => size.Get();
+
+    [HideFromIl2Cpp]
+    public Matrix4x4 PortalEnterMatrix => Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(transform.lossyScale.x, transform.lossyScale.y, 1f));
+
+    [HideFromIl2Cpp]
+    public Matrix4x4 PortalEnterMatrixInverse => PortalEnterMatrix.inverse;
+
+    [HideFromIl2Cpp]
+    public Matrix4x4 PortalExitMatrix => Matrix4x4.TRS(transform.position, Quaternion.AngleAxis(180f, transform.up) * transform.rotation, new Vector3(transform.lossyScale.x, transform.lossyScale.y, 1f));
+
+    [HideFromIl2Cpp]
+    public Matrix4x4 PortalExitMatrixInverse => PortalExitMatrix.inverse;
+
+    [HideFromIl2Cpp]
+    public List<Collider> WallColliders { get; set; } = new();
+    #endregion
 
     private PortalCamera _leftEyeCamera = null;
     private PortalCamera _rightEyeCamera = null;
@@ -56,9 +78,19 @@ public class Portal : MonoBehaviour
     private PortalNearPlane _leftEyeNearPlane = null;
     private PortalNearPlane _rightEyeNearPlane = null;
 
-    private Material _rendererMaterial = null;
+    private void Awake()
+    {
+        var otherPortal = this.otherPortal.Get();
 
-    public void Awake()
+        if (otherPortal != null)
+        {
+            OtherPortal = otherPortal.TryCast<Portal>();
+        }
+
+        _surface = surface.Get().TryCast<PortalSurface>();
+    }
+
+    private void Start()
     {
         foreach (var collider in GetComponentsInChildren<Collider>())
         {
@@ -71,23 +103,19 @@ public class Portal : MonoBehaviour
         _leftEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Left);
         _rightEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Right);
 
-        _rendererMaterial = PortalFrontRenderer.material;
+        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureId, _leftEyeCamera.TargetTexture);
+        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.RightEyeTextureId, _rightEyeCamera.TargetTexture);
 
-        _rendererMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureName, _leftEyeCamera.TargetTexture);
-        _rendererMaterial.SetTexture(PortalShaderConstants.RightEyeTextureName, _rightEyeCamera.TargetTexture);
+        _leftEyeNearPlane = new PortalNearPlane(Surface.AlwaysVisibleShader);
+        _rightEyeNearPlane = new PortalNearPlane(Surface.AlwaysVisibleShader);
 
-        PortalBackRenderer.sharedMaterial = _rendererMaterial;
+        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, _leftEyeCamera.TargetTexture);
+        _leftEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
 
-        _leftEyeNearPlane = new PortalNearPlane(PortalNearPlane.sharedMaterial.shader);
-        _rightEyeNearPlane = new PortalNearPlane(PortalNearPlane.sharedMaterial.shader);
+        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, _rightEyeCamera.TargetTexture);
+        _rightEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
 
-        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureName, _leftEyeCamera.TargetTexture);
-        _leftEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeName, 0f);
-
-        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureName, _rightEyeCamera.TargetTexture);
-        _rightEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeName, 1f);
-
-        PortalCorridor.enabled = false;
+        Surface.CorridorRenderer.enabled = false;
 
         OpenControllerRigPatches.PreBeginCameraRendering += OnPreBeginCameraRendering;
         OpenControllerRigPatches.BeginCameraRendering += OnBeginCameraRendering;
@@ -114,15 +142,15 @@ public class Portal : MonoBehaviour
     {
         _leftEyeNearPlane.Hide();
         _rightEyeNearPlane.Hide();
-        PortalCorridor.enabled = false;
+        Surface.CorridorRenderer.enabled = false;
 
-        PortalFrontRenderer.enabled = true;
-        PortalBackRenderer.enabled = true;
+        Surface.FrontRenderer.enabled = true;
+        Surface.BackRenderer.enabled = true;
     }
 
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
     {
-        if (PortalFrontRenderer != null && !PortalFrontRenderer.isVisible && !PortalBackRenderer.isVisible)
+        if (Surface.FrontRenderer != null && !Surface.FrontRenderer.isVisible && !Surface.BackRenderer.isVisible)
         {
             return;
         }
@@ -144,12 +172,12 @@ public class Portal : MonoBehaviour
         {
             float percent = Math.Clamp(i / (float)initialValue, 0f, 1f);
 
-            _rendererMaterial.SetFloat("_Fade", percent);
+            Surface.SurfaceMaterial.SetFloat("_Fade", percent);
 
             ApplyPosition(src, cam, i);
         }
 
-        _rendererMaterial.SetFloat("_Fade", 0f);
+        Surface.SurfaceMaterial.SetFloat("_Fade", 0f);
 
         DrawClippingPlane(cam);
     }
@@ -165,15 +193,15 @@ public class Portal : MonoBehaviour
 
         for (var i = 0; i <= iteration; i++)
         {
-            newPosition = otherPortalTransform.TransformPoint(transform.InverseTransformPoint(newPosition));
-            newRotation = otherPortalTransform.rotation * (Quaternion.Inverse(transform.rotation) * newRotation);
+            newPosition = OtherPortal.PortalExitMatrix.MultiplyPoint(PortalEnterMatrixInverse.MultiplyPoint(newPosition));
+            newRotation = OtherPortal.PortalExitMatrix.rotation * (PortalEnterMatrixInverse.rotation * newRotation);
         }
 
         float centerSign = Math.Sign(Vector3.Dot(otherPortalTransform.forward, otherPortalTransform.position - newPosition));
 
         if (IsVR(mainCamera))
         {
-            _rendererMaterial.SetInt("_ForceEye", 1);
+            Surface.SurfaceMaterial.SetInt("_ForceEye", 1);
 
             var (left, right) = GetEyes();
 
@@ -187,18 +215,18 @@ public class Portal : MonoBehaviour
             _leftEyeCamera.Transform.SetPositionAndRotation(leftEyeWorld, newRotation);
             _leftEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Left, centerSign, otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera);
 
-            _rendererMaterial.SetFloat("_EyeOverride", 0f);
+            Surface.SurfaceMaterial.SetFloat("_EyeOverride", 0f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
 
             _rightEyeCamera.Transform.SetPositionAndRotation(rightEyeWorld, newRotation);
             _rightEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Right, centerSign, otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera);
 
-            _rendererMaterial.SetFloat("_EyeOverride", 1f);
+            Surface.SurfaceMaterial.SetFloat("_EyeOverride", 1f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _rightEyeCamera.Camera);
 
-            _rendererMaterial.SetInt("_ForceEye", 0);
+            Surface.SurfaceMaterial.SetInt("_ForceEye", 0);
 
         }
         else
@@ -210,6 +238,7 @@ public class Portal : MonoBehaviour
             var newMatrix = mainCamera.CalculateObliqueMatrix(clipPlaneCameraSpace);
 
             _leftEyeCamera.Camera.projectionMatrix = newMatrix;
+
             UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
         }
     }
@@ -219,9 +248,19 @@ public class Portal : MonoBehaviour
         return !PortalsMod.IsMockHMD && camera.stereoTargetEye == StereoTargetEyeMask.Both;
     }
 
+    private Matrix4x4 CalculateCullingMatrix(Camera camera)
+    {
+        Matrix4x4 PMMatrixForCulling = camera.projectionMatrix;
+
+        PMMatrixForCulling.m22 = (camera.farClipPlane + camera.nearClipPlane) / (camera.nearClipPlane - camera.farClipPlane);
+        PMMatrixForCulling.m23 = (2 * camera.farClipPlane * camera.nearClipPlane) / (camera.nearClipPlane - camera.farClipPlane);
+
+        return PMMatrixForCulling * camera.worldToCameraMatrix;
+    }
+
     private void DrawClippingPlane(Camera camera)
     {
-        var cameraInPortal = transform.InverseTransformPoint(camera.transform.position);
+        var cameraInPortal = PortalEnterMatrixInverse.MultiplyPoint(camera.transform.position);
         var extents = Size * 0.5f;
 
         // Not in bounds
@@ -236,11 +275,11 @@ public class Portal : MonoBehaviour
 
             if (centerSign <= 0f)
             {
-                PortalCorridorParent.localRotation = Quaternion.identity;
+                Surface.CorridorPivot.localRotation = Quaternion.identity;
             }
             else
             {
-                PortalCorridorParent.localRotation = Quaternion.AngleAxis(180f, Vector3.up);
+                Surface.CorridorPivot.localRotation = Quaternion.AngleAxis(180f, Vector3.up);
             }
 
             var (left, right) = GetEyes();
@@ -256,13 +295,13 @@ public class Portal : MonoBehaviour
             }
             else
             {
-                PortalCorridor.enabled = true;
+                Surface.CorridorRenderer.enabled = true;
 
-                PortalCorridor.material.SetTexture(PortalShaderConstants.MainTextureName, _leftEyeCamera.TargetTexture);
-                PortalCorridor.material.SetFloat(PortalShaderConstants.TargetEyeName, 0f);
+                Surface.CorridorRenderer.material.SetTexture(PortalShaderConstants.MainTextureId, _leftEyeCamera.TargetTexture);
+                Surface.CorridorRenderer.material.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
 
-                PortalFrontRenderer.enabled = isInFront;
-                PortalBackRenderer.enabled = !isInFront;
+                Surface.FrontRenderer.enabled = isInFront;
+                Surface.BackRenderer.enabled = !isInFront;
             }
 
             if (Mathf.Approximately(rightEyeSign, centerSign))
@@ -271,13 +310,13 @@ public class Portal : MonoBehaviour
             }
             else
             {
-                PortalCorridor.enabled = true;
+                Surface.CorridorRenderer.enabled = true;
 
-                PortalCorridor.material.SetTexture(PortalShaderConstants.MainTextureName, _rightEyeCamera.TargetTexture);
-                PortalCorridor.material.SetFloat(PortalShaderConstants.TargetEyeName, 1f);
+                Surface.CorridorRenderer.material.SetTexture(PortalShaderConstants.MainTextureId, _rightEyeCamera.TargetTexture);
+                Surface.CorridorRenderer.material.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
 
-                PortalFrontRenderer.enabled = isInFront;
-                PortalBackRenderer.enabled = !isInFront;
+                Surface.FrontRenderer.enabled = isInFront;
+                Surface.BackRenderer.enabled = !isInFront;
             }
         }
         else
@@ -291,7 +330,7 @@ public class Portal : MonoBehaviour
         var selfScale = portal.lossyScale;
         var otherScale = other.lossyScale;
 
-        var scaleDifference = new Vector3(selfScale.x / otherScale.x, selfScale.y / otherScale.y, selfScale.z / otherScale.z);
+        var scaleDifference = new Vector3(selfScale.x / otherScale.x, selfScale.y / otherScale.y, 1f);
 
         return scaleDifference;
     }

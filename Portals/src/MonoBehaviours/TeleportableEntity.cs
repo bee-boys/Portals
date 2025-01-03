@@ -48,10 +48,10 @@ public class TeleportableEntity : Teleportable
 
     public override void Teleport(Portal inPortal, Portal outPortal)
     {
-        var inTransform = inPortal.transform;
-        var outTransform = outPortal.transform;
+        var inMatrix = inPortal.PortalEnterMatrix;
+        var outMatrix = outPortal.PortalExitMatrix;
 
-        var newMatrix = CalculateTeleportedMatrix(transform.localToWorldMatrix, inTransform, outTransform);
+        var newMatrix = CalculateTeleportedMatrix(transform.localToWorldMatrix, inMatrix, outMatrix);
 
         transform.position = newMatrix.GetPosition();
         transform.rotation = newMatrix.rotation;
@@ -75,8 +75,8 @@ public class TeleportableEntity : Teleportable
             rigidbody.mass *= scaleFactor;
             rigidbody.inertiaTensor *= scaleFactor;
 
-            rigidbody.velocity = outTransform.TransformVector(inTransform.InverseTransformVector(rigidbody.velocity));
-            rigidbody.angularVelocity = outTransform.TransformDirection(inTransform.InverseTransformDirection(rigidbody.angularVelocity));
+            rigidbody.velocity = outMatrix.MultiplyVector(inMatrix.inverse.MultiplyVector(rigidbody.velocity));
+            rigidbody.angularVelocity = outMatrix.rotation * (inMatrix.inverse.rotation * rigidbody.angularVelocity);
         }
     }
 

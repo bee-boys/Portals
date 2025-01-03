@@ -190,11 +190,8 @@ public class TeleportableRigManager : Teleportable
 
     public override void Teleport(Portal inPortal, Portal outPortal)
     {
-        var inTransform = inPortal.transform;
-        var outTransform = outPortal.transform;
-
-        var inPortalMatrix = inTransform.localToWorldMatrix;
-        var outPortalMatrix = outTransform.localToWorldMatrix;
+        var inPortalMatrix = inPortal.PortalEnterMatrix;
+        var outPortalMatrix = outPortal.PortalExitMatrix;
 
         var pendingTransforms = new List<PendingTransform>();
         foreach (var rigidbody in MarrowEntity.Bodies)
@@ -254,15 +251,15 @@ public class TeleportableRigManager : Teleportable
 
             var rigidbody = body._rigidbody;
 
-            rigidbody.velocity = outTransform.TransformVector(inTransform.InverseTransformVector(rigidbody.velocity));
-            rigidbody.angularVelocity = outTransform.TransformDirection(inTransform.InverseTransformDirection(rigidbody.angularVelocity));
+            rigidbody.velocity = outPortalMatrix.MultiplyVector(inPortalMatrix.inverse.MultiplyVector(rigidbody.velocity));
+            rigidbody.angularVelocity = outPortalMatrix.rotation * (inPortalMatrix.inverse.rotation * rigidbody.angularVelocity);
         }
 
         var remapRig = RigManager.remapHeptaRig;
 
-        remapRig._currentVelocity = TransformVector2(remapRig._currentVelocity, inTransform, outTransform);
-        remapRig._currentAcceleration = TransformVector2(remapRig._currentAcceleration, inTransform, outTransform);
-        remapRig._effectiveAcceleration = TransformVector2(remapRig._effectiveAcceleration, inTransform, outTransform);
+        remapRig._currentVelocity = TransformVector2(remapRig._currentVelocity, inPortalMatrix, outPortalMatrix);
+        remapRig._currentAcceleration = TransformVector2(remapRig._currentAcceleration, inPortalMatrix, outPortalMatrix);
+        remapRig._effectiveAcceleration = TransformVector2(remapRig._effectiveAcceleration, inPortalMatrix, outPortalMatrix);
 
         TeleportHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal, outPortal);
 
@@ -275,7 +272,7 @@ public class TeleportableRigManager : Teleportable
         }
 
         // Scale the player's avatar
-        var newScale = outTransform.lossyScale.y / inTransform.lossyScale.y;
+        var newScale = outPortalMatrix.lossyScale.y / inPortalMatrix.lossyScale.y;
 
         if (!Mathf.Approximately(newScale, 1f))
         {
@@ -291,11 +288,11 @@ public class TeleportableRigManager : Teleportable
         PhysicsRig.artOutput.ArtOutputLateUpdate(PhysicsRig);
     }
 
-    private Vector2 TransformVector2(Vector2 vector, Transform inTransform, Transform outTransform)
+    private Vector2 TransformVector2(Vector2 vector, Matrix4x4 inMatrix, Matrix4x4 outMatrix)
     {
         var newVector = new Vector3(vector.x, 0f, vector.y);
 
-        newVector = outTransform.TransformVector(inTransform.InverseTransformVector(newVector));
+        newVector = outMatrix.MultiplyVector(inMatrix.inverse.MultiplyVector(newVector));
 
         return new Vector2(newVector.x, newVector.z);
     }

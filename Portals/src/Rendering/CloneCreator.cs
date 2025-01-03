@@ -56,6 +56,12 @@ public static class CloneCreator
                 {
                     continue;
                 }
+                
+                // GetComponents includes missing scripts
+                if (component == null)
+                {
+                    continue;
+                }
 
                 GameObject.DestroyImmediate(component);
             }
