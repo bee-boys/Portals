@@ -1,4 +1,6 @@
 ﻿using Il2CppInterop.Runtime.InteropTypes.Fields;
+using Il2CppInterop.Runtime.Attributes;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 
 using System;
 
@@ -7,8 +9,9 @@ using UnityEngine;
 using MelonLoader;
 
 using Portals.Pooling;
-using Il2CppInterop.Runtime.Attributes;
+
 using Il2CppSLZ.Marrow.Pool;
+using Il2CppSLZ.Marrow.Audio;
 
 namespace Portals.MonoBehaviours;
 
@@ -29,6 +32,15 @@ public class PortalGun : MonoBehaviour
     public Il2CppValueField<int> portalShape;
 
     public Il2CppReferenceField<Transform> firePoint;
+
+    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> primaryOpenSounds;
+
+    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> secondaryOpenSounds;
+    #endregion
+
+    #region FIELDS
+    private AudioClip[] _primaryOpenSounds = null;
+    private AudioClip[] _secondaryOpenSounds = null;
     #endregion
 
     #region PROPERTIES
@@ -49,6 +61,12 @@ public class PortalGun : MonoBehaviour
 
     [HideFromIl2Cpp]
     public Transform FirePoint => firePoint.Get();
+
+    [HideFromIl2Cpp]
+    public AudioClip[] PrimaryOpenSounds => _primaryOpenSounds;
+
+    [HideFromIl2Cpp]
+    public AudioClip[] SecondaryOpenSounds => _secondaryOpenSounds;
     #endregion
 
     private Portal _primaryPortal = null;
@@ -139,11 +157,33 @@ public class PortalGun : MonoBehaviour
                 _primaryPortal.OtherPortal = _secondaryPortal;
                 _secondaryPortal.OtherPortal = _primaryPortal;
             }
+
+            var openSounds = primary ? PrimaryOpenSounds : SecondaryOpenSounds;
+
+            if (openSounds != null)
+            {
+                Audio3dManager.PlayAtPoint(openSounds, position, Audio3dManager.hardInteraction, 0.4f, 1f, new(0f), new(0.4f), new(1f));
+            }
         });
     }
     #endregion
 
     #region UNITY
+    private void Awake()
+    {
+        var primaryOpenSounds = this.primaryOpenSounds.Get();
 
+        if (primaryOpenSounds != null)
+        {
+            _primaryOpenSounds = primaryOpenSounds;
+        }
+
+        var secondaryOpenSounds = this.secondaryOpenSounds.Get();
+
+        if (secondaryOpenSounds != null)
+        {
+            _secondaryOpenSounds = secondaryOpenSounds;
+        }
+    }
     #endregion
 }
