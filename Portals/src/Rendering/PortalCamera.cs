@@ -32,13 +32,12 @@ public class PortalCamera
         Camera.useOcclusionCulling = false;
         Camera.allowHDR = true;
         Camera.allowMSAA = false;
+        Camera.clearFlags = CameraClearFlags.SolidColor;
+        Camera.backgroundColor = Color.black;
 
         var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
         data.antialiasing = AntialiasingMode.None;
         data.allowXRRendering = false;
-
-        Camera.clearFlags = CameraClearFlags.SolidColor;
-        Camera.backgroundColor = Color.black;
 
         var (width, height) = GetDimensions();
 
