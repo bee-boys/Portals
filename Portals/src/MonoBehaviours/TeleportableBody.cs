@@ -59,9 +59,19 @@ public class TeleportableBody : MonoBehaviour
         }
         set
         {
+            if (_triggeredPortal != null)
+            {
+                _triggeredPortal.OnClosedEvent -= OnTriggeredPortalClosed;
+            }
+
             var previous = CurrentPortal;
 
             _triggeredPortal = value;
+
+            if (value != null)
+            {
+                value.OnClosedEvent += OnTriggeredPortalClosed;
+            }
 
             CheckPortalChange(previous, CurrentPortal);
         }
@@ -103,6 +113,11 @@ public class TeleportableBody : MonoBehaviour
         {
             OnPortalEnterEvent?.Invoke(this, current);
         }
+    }
+
+    private void OnTriggeredPortalClosed()
+    {
+        TriggeredPortal = null;
     }
 
     private void GetHost()

@@ -46,9 +46,18 @@ public class Portal : MonoBehaviour
         }
         set
         {
+            var wasOpen = OtherPortal != null;
+
             _otherPortal = value;
 
-            Surface.Open = value != null;
+            bool isOpen = value != null;
+
+            Surface.Open = isOpen;
+
+            if (!isOpen && wasOpen)
+            {
+                OnClosedEvent?.Invoke();
+            }
         }
     }
 
@@ -72,6 +81,9 @@ public class Portal : MonoBehaviour
 
     [HideFromIl2Cpp]
     public List<Collider> WallColliders { get; set; } = new();
+
+    [HideFromIl2Cpp]
+    public event Action OnClosedEvent;
     #endregion
 
     private PortalCamera _leftEyeCamera = null;
@@ -123,7 +135,17 @@ public class Portal : MonoBehaviour
         OpenControllerRigPatches.BeginCameraRendering += OnBeginCameraRendering;
     }
 
-    public void OnDestroy()
+    private void OnDisable()
+    {
+        // Break the connection
+        if (OtherPortal)
+        {
+            OtherPortal.OtherPortal = null;
+            OtherPortal = null;
+        }
+    }
+
+    private void OnDestroy()
     {
         _leftEyeNearPlane.Destroy();
         _rightEyeNearPlane.Destroy();
