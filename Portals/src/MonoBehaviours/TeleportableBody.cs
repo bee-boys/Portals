@@ -59,21 +59,26 @@ public class TeleportableBody : MonoBehaviour
         }
         set
         {
-            if (_triggeredPortal != null)
+            var previousTriggered = _triggeredPortal;
+            var currentTriggered = value;
+
+            if (previousTriggered != null)
             {
-                _triggeredPortal.OnClosedEvent -= OnTriggeredPortalClosed;
+                previousTriggered.OnClosedEvent -= OnTriggeredPortalClosed;
             }
 
             var previous = CurrentPortal;
 
-            _triggeredPortal = value;
+            _triggeredPortal = currentTriggered;
 
-            if (value != null)
+            if (currentTriggered != null)
             {
-                value.OnClosedEvent += OnTriggeredPortalClosed;
+                currentTriggered.OnClosedEvent += OnTriggeredPortalClosed;
             }
 
             CheckPortalChange(previous, CurrentPortal);
+
+            OnTriggeredPortalChanged(previousTriggered, currentTriggered);
         }
     }
 
@@ -113,6 +118,11 @@ public class TeleportableBody : MonoBehaviour
         {
             OnPortalEnterEvent?.Invoke(this, current);
         }
+    }
+
+    private void OnTriggeredPortalChanged(Portal previous, Portal current)
+    {
+
     }
 
     private void OnTriggeredPortalClosed()
