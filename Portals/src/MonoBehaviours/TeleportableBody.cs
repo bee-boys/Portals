@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -222,5 +223,39 @@ public class TeleportableBody : MonoBehaviour
         var unscaledBounds = MarrowBody._bounds;
 
         Tracker.SetBounds(unscaledBounds);
+    }
+
+    private readonly List<Collider> _ignoredColliders = new();
+
+    public void IgnoreCollision(Portal portal, bool ignore = true)
+    {
+        foreach (var collider in portal.WallColliders)
+        {
+            if (ignore)
+            {
+                _ignoredColliders.Add(collider);
+            }
+            else
+            {
+                _ignoredColliders.Remove(collider);
+            }
+
+            MarrowBody.IgnoreCollision(collider, ignore);
+        }
+    }
+
+    public void ResetCollision()
+    {
+        foreach (var collider in _ignoredColliders)
+        {
+            if (collider == null)
+            {
+                continue;
+            }
+
+            MarrowBody.IgnoreCollision(collider, false);
+        }
+
+        _ignoredColliders.Clear();
     }
 }
