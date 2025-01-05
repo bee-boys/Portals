@@ -162,25 +162,6 @@ public class Teleportable : MonoBehaviour
             return;
         }
 
-        if (_inPortal != null)
-        {
-            foreach (var body in Bodies)
-            {
-                foreach (var collider in _inPortal.WallColliders)
-                {
-                    body.MarrowBody.IgnoreCollision(collider, false);
-                }
-            }
-        }
-
-        foreach (var body in Bodies)
-        {
-            foreach (var collider in inPortal.WallColliders)
-            {
-                body.MarrowBody.IgnoreCollision(collider, true);
-            }
-        }
-
         _inPortal = inPortal;
         _outPortal = outPortal;
 
@@ -195,6 +176,11 @@ public class Teleportable : MonoBehaviour
             _initialSign = GetPortalSign(inPortal);
         }
 
+        foreach (var body in Bodies)
+        {
+            body.CheckCollision(inPortal);
+        }
+
         if (_cloneRenderer)
         {
             _cloneRenderer.Show();
@@ -205,16 +191,7 @@ public class Teleportable : MonoBehaviour
 
     public void ClearPortals()
     {
-        if (_inPortal != null)
-        {
-            foreach (var body in Bodies)
-            {
-                foreach (var collider in _inPortal.WallColliders)
-                {
-                    body.MarrowBody.IgnoreCollision(collider, false);
-                }
-            }
-        }
+        ResetCollision();
 
         _inPortal = null;
         _outPortal = null;
@@ -228,6 +205,14 @@ public class Teleportable : MonoBehaviour
         }
 
         OnPortalsChanged(null, null);
+    }
+
+    public void ResetCollision()
+    {
+        foreach (var body in Bodies)
+        {
+            body.ResetCollision();
+        }
     }
 
     protected virtual void OnPortalsChanged(Portal inPortal, Portal outPortal) { }
