@@ -33,6 +33,7 @@ public class PortalSurface : MonoBehaviour
 
     #region FIELDS
     private Material _surfaceMaterial = null;
+    private Material _corridorMaterial = null;
 
     private bool _open = false;
 
@@ -64,6 +65,9 @@ public class PortalSurface : MonoBehaviour
 
     [HideFromIl2Cpp]
     public Material SurfaceMaterial => _surfaceMaterial;
+
+    [HideFromIl2Cpp]
+    public Material CorridorMaterial => _corridorMaterial;
 
     public bool Open
     {
@@ -125,6 +129,8 @@ public class PortalSurface : MonoBehaviour
         _surfaceMaterial = FrontRenderer.material;
 
         BackRenderer.sharedMaterial = _surfaceMaterial;
+
+        _corridorMaterial = CorridorRenderer.material;
     }
 
     private void OnEnable()

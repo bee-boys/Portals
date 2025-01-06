@@ -335,8 +335,8 @@ public class Portal : MonoBehaviour
             {
                 Surface.CorridorRenderer.enabled = true;
 
-                Surface.CorridorRenderer.material.SetTexture(PortalShaderConstants.MainTextureId, _leftEyeCamera.TargetTexture);
-                Surface.CorridorRenderer.material.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
+                Surface.CorridorMaterial.SetTexture(PortalShaderConstants.MainTextureId, _leftEyeCamera.TargetTexture);
+                Surface.CorridorMaterial.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
 
                 Surface.FrontRenderer.enabled = isInFront;
                 Surface.BackRenderer.enabled = !isInFront;
@@ -350,8 +350,8 @@ public class Portal : MonoBehaviour
             {
                 Surface.CorridorRenderer.enabled = true;
 
-                Surface.CorridorRenderer.material.SetTexture(PortalShaderConstants.MainTextureId, _rightEyeCamera.TargetTexture);
-                Surface.CorridorRenderer.material.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
+                Surface.CorridorMaterial.SetTexture(PortalShaderConstants.MainTextureId, _rightEyeCamera.TargetTexture);
+                Surface.CorridorMaterial.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
 
                 Surface.FrontRenderer.enabled = isInFront;
                 Surface.BackRenderer.enabled = !isInFront;
@@ -403,7 +403,7 @@ public class Portal : MonoBehaviour
         var plane = new Plane(normal, otherPortalTransform.position + normal * 0.001f);
 
         var clipPlane = new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
-        var clipPlaneCameraSpace = Matrix4x4.Transpose(Matrix4x4.Inverse(portalCamera.worldToCameraMatrix)) * clipPlane;
+        var clipPlaneCameraSpace = Matrix4x4.Transpose(portalCamera.cameraToWorldMatrix) * clipPlane;
 
         return clipPlaneCameraSpace;
     }
