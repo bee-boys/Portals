@@ -52,13 +52,14 @@ public static class CloneCreator
         {
             foreach (var component in root.GetComponentsInChildren<Component>(true))
             {
-                if (component.TryCast<Transform>())
+                // GetComponents includes missing scripts
+                if (component == null)
                 {
                     continue;
                 }
-                
-                // GetComponents includes missing scripts
-                if (component == null)
+
+                // Don't destroy transforms
+                if (component.TryCast<Transform>())
                 {
                     continue;
                 }
