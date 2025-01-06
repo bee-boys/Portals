@@ -89,6 +89,11 @@ public class PortalGun : MonoBehaviour
             return;
         }
 
+        if (hitInfo.collider.GetComponentInParent<Portal>())
+        {
+            return;
+        }
+
         var normal = hitInfo.normal;
         var uphill = Vector3.Cross(normal, Vector3.Cross(normal, Vector3.down));
 
