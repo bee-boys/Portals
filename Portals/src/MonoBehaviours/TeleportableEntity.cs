@@ -86,9 +86,9 @@ public class TeleportableEntity : Teleportable
         Vector3 center = Vector3.zero;
         float mass = 0f;
 
-        foreach (var body in MarrowEntity.Bodies)
+        foreach (var body in Bodies)
         {
-            center += body.CenterOfMassInWorld * body.Mass;
+            center += body.GetAnchor() * body.Mass;
             mass += body.Mass;
         }
 

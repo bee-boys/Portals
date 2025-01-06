@@ -25,6 +25,8 @@ public class TeleportableBody : MonoBehaviour
     public bool HasHost => _hasHost;
     public bool HasRigidbody => MarrowBody.HasRigidbody && !MarrowBody._rigidbody.isKinematic;
 
+    public float Mass => MarrowBody.Mass;
+
     public TeleportableTracker Tracker => _tracker;
 
     private MarrowBody _marrowBody = null;
@@ -235,7 +237,7 @@ public class TeleportableBody : MonoBehaviour
 
     public Vector3 GetAnchor()
     {
-        return MarrowBody.CenterOfMassInWorld;
+        return Tracker.transform.TransformPoint(Tracker.TrackerCollider.center);
     }
 
     private readonly List<Collider> _ignoredColliders = new();
