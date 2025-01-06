@@ -229,7 +229,7 @@ public class Portal : MonoBehaviour
 
         for (var i = 0; i <= iteration; i++)
         {
-            newPosition = OtherPortal.PortalExitMatrix.MultiplyPoint(PortalEnterMatrixInverse.MultiplyPoint(newPosition));
+            newPosition = OtherPortal.PortalExitMatrix.MultiplyPoint3x4(PortalEnterMatrixInverse.MultiplyPoint3x4(newPosition));
             newRotation = OtherPortal.PortalExitMatrix.rotation * (PortalEnterMatrixInverse.rotation * newRotation);
         }
 
@@ -298,7 +298,7 @@ public class Portal : MonoBehaviour
 
     private void DrawClippingPlane(Camera camera)
     {
-        var cameraInPortal = PortalEnterMatrixInverse.MultiplyPoint(camera.transform.position);
+        var cameraInPortal = PortalEnterMatrixInverse.MultiplyPoint3x4(camera.transform.position);
         var extents = Size * 0.5f;
 
         // Not in bounds
