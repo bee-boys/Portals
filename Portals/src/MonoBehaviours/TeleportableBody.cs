@@ -282,10 +282,15 @@ public class TeleportableBody : MonoBehaviour
 
     public bool Intersects(Portal portal)
     {
+        if (Teleportable.PassedThrough(Teleportable.EnterSign, Teleportable.GetPortalSign(portal, GetAnchor())))
+        {
+            return true;
+        }
+
         var portalTransform = portal.transform;
         var trackerTransform = Tracker.transform;
 
-        var portalBounds = CalculateAABB(portalTransform.position, new Vector3(portal.Size.x, portal.Size.y, 0.01f), portalTransform);
+        var portalBounds = CalculateAABB(portalTransform.position, new Vector3(portal.Size.x, portal.Size.y, 0.05f), portalTransform);
         var bodyBounds = CalculateAABB(trackerTransform.TransformPoint(Tracker.TrackerCollider.center), Tracker.TrackerCollider.size, trackerTransform);
 
         var bodyAnchor = portalTransform.InverseTransformDirection(GetAnchor());
