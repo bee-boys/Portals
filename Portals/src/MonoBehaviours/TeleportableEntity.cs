@@ -39,10 +39,6 @@ public class TeleportableEntity : Teleportable
         if (PassedThrough(_initialSign, newSign) && InBounds(inPortal, GetAnchor()) && !IsGrabbed())
         {
             Teleport(inPortal, outPortal);
-
-            SetPortals(outPortal, inPortal);
-
-            UpdateClone();
         }
     }
 
@@ -78,6 +74,11 @@ public class TeleportableEntity : Teleportable
             rigidbody.velocity = outMatrix.MultiplyVector(inMatrix.inverse.MultiplyVector(rigidbody.velocity));
             rigidbody.angularVelocity = outMatrix.rotation * (inMatrix.inverse.rotation * rigidbody.angularVelocity);
         }
+
+        // Update portals
+        SetPortals(outPortal, inPortal);
+
+        UpdateClone();
     }
 
     public override Vector3 GetAnchor()

@@ -117,10 +117,6 @@ public class TeleportableRigManager : Teleportable
         if (PassedThrough(_initialSign, newSign) && InBounds(_inPortal, GetAnchor()) && !IsGrabbed())
         {
             Teleport(inPortal, outPortal);
-
-            SetPortals(outPortal, inPortal);
-
-            UpdateClone();
         }
     }
 
@@ -261,8 +257,6 @@ public class TeleportableRigManager : Teleportable
         remapRig._currentAcceleration = TransformVector2(remapRig._currentAcceleration, inPortalMatrix, outPortalMatrix);
         remapRig._effectiveAcceleration = TransformVector2(remapRig._effectiveAcceleration, inPortalMatrix, outPortalMatrix);
 
-        TeleportHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal, outPortal);
-
         _correctRotation = true;
 
         if (Vector3.Angle(remapRig.transform.up, Vector3.up) > 10f)
@@ -280,6 +274,14 @@ public class TeleportableRigManager : Teleportable
         }
 
         UpdateArt();
+
+        // Update portals
+        SetPortals(outPortal, inPortal);
+
+        UpdateClone();
+
+        // Teleport grips
+        TeleportHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal, outPortal);
     }
 
     private void UpdateArt()
@@ -382,15 +384,11 @@ public class TeleportableRigManager : Teleportable
         if (leftEntity != null)
         {
             leftEntity.Teleport(inPortal, outPortal);
-            leftEntity.SetPortals(outPortal, inPortal);
-            leftEntity.UpdateClone();
         }
 
         if (rightEntity != null)
         {
             rightEntity.Teleport(inPortal, outPortal);
-            rightEntity.SetPortals(outPortal, inPortal);
-            rightEntity.UpdateClone();
         }
     }
 
