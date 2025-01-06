@@ -6,7 +6,6 @@ using UnityEngine;
 using MelonLoader;
 
 using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.Marrow;
 
 using Il2CppInterop.Runtime.Attributes;
 
@@ -21,12 +20,6 @@ public class Teleportable : MonoBehaviour
 
     public MarrowEntity MarrowEntity => _marrowEntity;
     private MarrowEntity _marrowEntity = null;
-
-    public bool HasHostManager => _hasHostManager;
-    public InteractableHostManager HostManager => _hostManager;
-
-    private InteractableHostManager _hostManager = null;
-    private bool _hasHostManager = false;
 
     [HideFromIl2Cpp]
     public List<TeleportableBody> Bodies => _bodies;
@@ -99,9 +92,6 @@ public class Teleportable : MonoBehaviour
     protected virtual void SetupEntity(MarrowEntity marrowEntity)
     {
         _marrowEntity = marrowEntity;
-
-        _hostManager = marrowEntity.GetComponent<InteractableHostManager>();
-        _hasHostManager = _hostManager != null;
 
         foreach (var body in marrowEntity.Bodies)
         {
@@ -307,11 +297,6 @@ public class Teleportable : MonoBehaviour
 
     public bool IsGrabbed()
     {
-        if (HasHostManager)
-        {
-            return HostManager.grabbedHosts.Count > 0;
-        }
-
         foreach (var body in Bodies)
         {
             if (!body.HasHost)
@@ -331,24 +316,6 @@ public class Teleportable : MonoBehaviour
     [HideFromIl2Cpp]
     public Teleportable GetGrabbingTeleportable()
     {
-        if (HasHostManager)
-        {
-            foreach (var host in HostManager.grabbedHosts)
-            {
-                foreach (var hand in host._hands)
-                {
-                    var teleportable = hand.GetComponentInParent<Teleportable>();
-
-                    if (teleportable)
-                    {
-                        return teleportable;
-                    }
-                }
-            }
-
-            return null;
-        }
-
         foreach (var body in Bodies)
         {
             if (!body.HasHost)
