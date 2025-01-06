@@ -259,7 +259,7 @@ public class TeleportableRigManager : Teleportable
 
         _correctRotation = true;
 
-        if (Vector3.Angle(remapRig.transform.up, Vector3.up) > 10f)
+        if (Vector3.Angle(remapRig.transform.up, Vector3.up) > 10f && PhysicsRig.ballLocoEnabled)
         {
             ToggleBallLoco(false);
             _correctBallLoco = true;
