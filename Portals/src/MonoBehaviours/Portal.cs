@@ -27,6 +27,7 @@ public class Portal : MonoBehaviour
     #region FIELD INJECTION
     public Il2CppReferenceField<MonoBehaviour> otherPortal;
     public Il2CppReferenceField<MonoBehaviour> surface;
+    public Il2CppReferenceField<MonoBehaviour> expander;
     public Il2CppValueField<Vector2> size;
     #endregion
 
@@ -34,6 +35,8 @@ public class Portal : MonoBehaviour
     private Portal _otherPortal = null;
 
     private PortalSurface _surface = null;
+
+    private PortalExpander _expander = null;
     #endregion
 
     #region PROPERTIES
@@ -63,6 +66,9 @@ public class Portal : MonoBehaviour
 
     [HideFromIl2Cpp]
     public PortalSurface Surface => _surface;
+
+    [HideFromIl2Cpp]
+    public PortalExpander Expander => _expander;
 
     [HideFromIl2Cpp]
     public Vector2 Size => size.Get();
@@ -102,6 +108,10 @@ public class Portal : MonoBehaviour
         }
 
         _surface = surface.Get().TryCast<PortalSurface>();
+
+        _expander = expander.Get().TryCast<PortalExpander>();
+
+        Expander.ToggleCollision(false);
     }
 
     private void Start()
@@ -143,6 +153,8 @@ public class Portal : MonoBehaviour
             OtherPortal.OtherPortal = null;
             OtherPortal = null;
         }
+
+        Expander.ToggleCollision(false);
     }
 
     private void OnDestroy()

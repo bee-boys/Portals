@@ -18,6 +18,10 @@ public class Teleportable : MonoBehaviour
 {
     public Teleportable(IntPtr intPtr) : base(intPtr) { }
 
+    public static readonly List<Teleportable> Teleportables = new();
+
+    public static event Action<Teleportable> OnTeleportableCreated;
+
     public MarrowEntity MarrowEntity => _marrowEntity;
     private MarrowEntity _marrowEntity = null;
 
@@ -44,7 +48,11 @@ public class Teleportable : MonoBehaviour
 
     private void Awake()
     {
+        Teleportables.Add(this);
+
         OnTeleportableAwake();
+
+        OnTeleportableCreated?.Invoke(this);
     }
 
     private void Start()
@@ -54,6 +62,8 @@ public class Teleportable : MonoBehaviour
 
     private void OnDestroy()
     {
+        Teleportables.Remove(this);
+
         OnTeleportableDestroy();
     }
 
@@ -152,6 +162,14 @@ public class Teleportable : MonoBehaviour
             return;
         }
 
+        // Reenable collision with the previous portal
+        if (_inPortal)
+        {
+            IgnoreCollision(_inPortal, false);
+
+            _inPortal.Expander.IgnoreCollision(this, true);
+        }
+
         _inPortal = inPortal;
         _outPortal = outPortal;
 
@@ -166,10 +184,11 @@ public class Teleportable : MonoBehaviour
             _initialSign = GetPortalSign(inPortal);
         }
 
-        foreach (var body in Bodies)
-        {
-            body.CheckCollision(inPortal);
-        }
+        // Disable collision with the new portal
+        IgnoreCollision(inPortal, true);
+
+        // Enable collision with its expander
+        _inPortal.Expander.IgnoreCollision(this, false);
 
         if (_cloneRenderer)
         {
@@ -181,6 +200,11 @@ public class Teleportable : MonoBehaviour
 
     public void ClearPortals()
     {
+        if (_inPortal)
+        {
+            _inPortal.Expander.IgnoreCollision(this, true);
+        }
+
         ResetCollision();
 
         _inPortal = null;
@@ -195,6 +219,14 @@ public class Teleportable : MonoBehaviour
         }
 
         OnPortalsChanged(null, null);
+    }
+
+    public void IgnoreCollision(Portal portal, bool ignore = true)
+    {
+        foreach (var body in Bodies)
+        {
+            body.IgnoreCollision(portal, ignore);
+        }
     }
 
     public void ResetCollision()

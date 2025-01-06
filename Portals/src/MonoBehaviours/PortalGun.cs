@@ -77,19 +77,34 @@ public class PortalGun : MonoBehaviour
 
     public void Fire(bool primary, Vector2 size)
     {
-        var ray = Physics.Raycast(FirePoint.position, FirePoint.forward, out var hitInfo);
+        var hits = Physics.RaycastAll(FirePoint.position, FirePoint.forward, float.PositiveInfinity, ~0, QueryTriggerInteraction.Ignore);
 
-        if (!ray)
+        RaycastHit hitInfo = default;
+        bool foundRay = false;
+
+        foreach (var hit in hits)
         {
-            return;
+            if (hit.rigidbody)
+            {
+                continue;
+            }
+
+            if (hit.collider.GetComponentInParent<Portal>())
+            {
+                continue;
+            }
+
+            // Get the closest hit
+            if (foundRay && hit.distance >= hitInfo.distance)
+            {
+                continue;
+            }
+
+            hitInfo = hit;
+            foundRay = true;
         }
 
-        if (hitInfo.collider.attachedRigidbody)
-        {
-            return;
-        }
-
-        if (hitInfo.collider.GetComponentInParent<Portal>())
+        if (!foundRay)
         {
             return;
         }
@@ -156,6 +171,8 @@ public class PortalGun : MonoBehaviour
 
                 _secondaryPortal = portal;
             }
+
+            portal.Expander.Expand();
 
             if (_primaryPortal && _secondaryPortal)
             {

@@ -80,8 +80,6 @@ public class TeleportableBody : MonoBehaviour
             }
 
             CheckPortalChange(previous, CurrentPortal);
-
-            OnTriggeredPortalChanged(previousTriggered, currentTriggered);
         }
     }
 
@@ -120,19 +118,6 @@ public class TeleportableBody : MonoBehaviour
         if (current != null)
         {
             OnPortalEnterEvent?.Invoke(this, current);
-        }
-    }
-
-    private void OnTriggeredPortalChanged(Portal previous, Portal current)
-    {
-        if (previous && !Teleportable.PassedThrough(Teleportable.EnterSign, Teleportable.GetPortalSign(previous, GetAnchor())))
-        {
-            IgnoreCollision(previous, false);
-        }
-
-        if (current)
-        {
-            IgnoreCollision(current, true);
         }
     }
 
@@ -272,65 +257,5 @@ public class TeleportableBody : MonoBehaviour
         }
 
         _ignoredColliders.Clear();
-    }
-
-    public void CheckCollision(Portal portal)
-    {
-        if (Intersects(portal))
-        {
-            IgnoreCollision(portal, true);
-        }
-    }
-
-    public bool Intersects(Portal portal)
-    {
-        if (Teleportable.PassedThrough(Teleportable.EnterSign, Teleportable.GetPortalSign(portal, GetAnchor())))
-        {
-            return true;
-        }
-
-        var portalTransform = portal.transform;
-        var trackerTransform = Tracker.transform;
-
-        var portalBounds = CalculateAABB(portalTransform.position, new Vector3(portal.Size.x, portal.Size.y, 0.05f), portalTransform);
-        var bodyBounds = CalculateAABB(trackerTransform.TransformPoint(Tracker.TrackerCollider.center), Tracker.TrackerCollider.size, trackerTransform);
-
-        var bodyAnchor = portalTransform.InverseTransformDirection(GetAnchor());
-        var rootAnchor = portalTransform.InverseTransformDirection(Teleportable.GetAnchor());
-
-        rootAnchor.x = bodyAnchor.x;
-        rootAnchor.y = bodyAnchor.y;
-
-        bodyBounds.Encapsulate(portalTransform.TransformDirection(rootAnchor));
-
-        return bodyBounds.Intersects(portalBounds);
-    }
-
-    private static Bounds CalculateAABB(Vector3 center, Vector3 size, Transform transform)
-    {
-        var min = size * -0.5f;
-        var max = size * 0.5f;
-
-        var c1 = transform.TransformPoint(min);
-        var c2 = transform.TransformPoint(new Vector3(min.x, min.y, max.z));
-        var c3 = transform.TransformPoint(new Vector3(min.x, max.y, min.z));
-        var c4 = transform.TransformPoint(new Vector3(min.x, max.y, max.z));
-        var c5 = transform.TransformPoint(new Vector3(max.x, min.y, min.z));
-        var c6 = transform.TransformPoint(new Vector3(max.x, min.y, max.z));
-        var c7 = transform.TransformPoint(new Vector3(max.x, max.y, min.z));
-        var c8 = transform.TransformPoint(max);
-
-        float minX = Mathf.Min(c1.x, c2.x, c3.x, c4.x, c5.x, c6.x, c7.x, c8.x);
-        float minY = Mathf.Min(c1.y, c2.y, c3.y, c4.y, c5.y, c6.y, c7.y, c8.y);
-        float minZ = Mathf.Min(c1.z, c2.z, c3.z, c4.z, c5.z, c6.z, c7.z, c8.z);
-
-        float maxX = Mathf.Max(c1.x, c2.x, c3.x, c4.x, c5.x, c6.x, c7.x, c8.x);
-        float maxY = Mathf.Max(c1.y, c2.y, c3.y, c4.y, c5.y, c6.y, c7.y, c8.y);
-        float maxZ = Mathf.Max(c1.z, c2.z, c3.z, c4.z, c5.z, c6.z, c7.z, c8.z);
-
-        var worldMin = new Vector3(minX, minY, minZ);
-        var worldMax = new Vector3(maxX, maxY, maxZ);
-
-        return new Bounds(center, worldMax - worldMin);
     }
 }
