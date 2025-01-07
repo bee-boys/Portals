@@ -117,9 +117,13 @@ public class PortalExpander : MonoBehaviour
 
     private void OverrideLayers()
     {
-        // Player layer is used to prevent the expanded colliders from blocking force grabs and causing stepping
-        var layer = (int)MarrowLayers.Player;
+        var layer = (int)MarrowLayers.Football;
 
+        // I'd rather not override this, but this is the closest layer to what I want that can't get step detected
+        // Also it doesn't really affect anything as far as I can tell, since the feet and knee joint disables collision
+        Physics.IgnoreLayerCollision(layer, layer, false);
+
+        // Football layer is used to prevent the expanded colliders from blocking force grabs and causing stepping
         RightCollider.gameObject.layer = layer;
         TopCollider.gameObject.layer = layer;
         LeftCollider.gameObject.layer = layer;
