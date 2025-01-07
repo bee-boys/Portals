@@ -117,8 +117,8 @@ public class PortalExpander : MonoBehaviour
 
     private void OverrideLayers()
     {
-        // Football layer is used to prevent the expanded colliders from blocking force grabs and causing stepping
-        var layer = (int)MarrowLayers.Football;
+        // Player layer is used to prevent the expanded colliders from blocking force grabs and causing stepping
+        var layer = (int)MarrowLayers.Player;
 
         RightCollider.gameObject.layer = layer;
         TopCollider.gameObject.layer = layer;
