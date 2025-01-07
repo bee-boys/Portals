@@ -2,6 +2,8 @@
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 
+using Il2CppSLZ.Marrow.Interaction;
+
 using MelonLoader;
 
 using UnityEngine;
@@ -112,11 +114,24 @@ public class PortalExpander : MonoBehaviour
             IgnoreCollision(teleportable, true);
         }
     }
+
+    private void OverrideLayers()
+    {
+        // Football layer is used to prevent the expanded colliders from blocking force grabs and causing stepping
+        var layer = (int)MarrowLayers.Football;
+
+        RightCollider.gameObject.layer = layer;
+        TopCollider.gameObject.layer = layer;
+        LeftCollider.gameObject.layer = layer;
+        BottomCollider.gameObject.layer = layer;
+    }
     #endregion
 
     #region UNITY
     private void Awake()
     {
+        OverrideLayers();
+
         Teleportable.OnTeleportableCreated += OnTeleportableCreated;
 
         IgnoreExistingTeleportables();
