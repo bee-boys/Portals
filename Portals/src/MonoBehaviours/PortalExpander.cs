@@ -146,7 +146,7 @@ public class PortalExpander : MonoBehaviour
         var selfPosition = transform.position;
         var fromTo = -collider.transform.forward;
 
-        if (Physics.Raycast(selfPosition, fromTo, out var offsetInfo, Vector3.Scale(transform.lossyScale, fromTo).magnitude + 0.01f, ~0, QueryTriggerInteraction.Ignore))
+        if (Physics.Raycast(selfPosition, fromTo, out var offsetInfo, Vector3.Scale(transform.lossyScale, fromTo).magnitude + 0.01f, ~0, QueryTriggerInteraction.Ignore) && !offsetInfo.rigidbody)
         {
             collider.transform.position = offsetInfo.point;
         }
