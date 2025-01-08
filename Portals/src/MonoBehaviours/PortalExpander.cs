@@ -146,15 +146,37 @@ public class PortalExpander : MonoBehaviour
         var selfPosition = transform.position;
         var fromTo = -collider.transform.forward;
 
-        if (Physics.Raycast(selfPosition, fromTo, out var offsetInfo, Vector3.Scale(transform.lossyScale, fromTo).magnitude + 0.01f, ~0, QueryTriggerInteraction.Ignore) && !offsetInfo.rigidbody)
+        RaycastHit offsetInfo = default;
+        bool foundOffsetRay = false;
+
+        foreach (var hit in Physics.RaycastAll(selfPosition, fromTo, Vector3.Scale(transform.lossyScale, fromTo).magnitude + 0.01f, ~0, QueryTriggerInteraction.Ignore))
         {
-            collider.transform.position = offsetInfo.point;
+            if (hit.rigidbody)
+            {
+                continue;
+            }
+
+            if (hit.collider.GetComponentInParent<PortalExpander>())
+            {
+                continue;
+            }
+
+            if (foundOffsetRay && hit.distance >= offsetInfo.distance)
+            {
+                continue;
+            }
+
+            offsetInfo = hit;
+            foundOffsetRay = true;
         }
-        else
+
+        if (!foundOffsetRay)
         {
             collider.enabled = false;
             return;
         }
+
+        collider.transform.position = offsetInfo.point;
 
         var start = collider.transform.position;
         var direction = collider.transform.right;
