@@ -1,7 +1,7 @@
 ﻿using System;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
-
+using Il2CppSLZ.Marrow;
 using Il2CppSLZ.Marrow.Interaction;
 
 using MelonLoader;
@@ -313,6 +313,15 @@ public class PortalExpander : MonoBehaviour
             collider.gameObject.layer = layer;
         }
     }
+
+    private void OverrideBullets()
+    {
+        // Bullets shouldn't interact with these colliders
+        foreach (var collider in _colliders)
+        {
+            collider.gameObject.AddComponent<BallisticPassthrough>();
+        }
+    }
     #endregion
 
     #region UNITY
@@ -321,6 +330,7 @@ public class PortalExpander : MonoBehaviour
         CollectColliders();
 
         OverrideLayers();
+        OverrideBullets();
 
         Teleportable.OnTeleportableCreated += OnTeleportableCreated;
 
