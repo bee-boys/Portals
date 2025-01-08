@@ -206,13 +206,17 @@ public class PortalExpander : MonoBehaviour
 
     public void IgnoreCollision(Teleportable teleportable, bool ignore = true)
     {
-        foreach (var body in teleportable.Bodies)
+        try
         {
-            foreach (var collider in _colliders)
+            foreach (var body in teleportable.Bodies)
             {
-                body.MarrowBody.IgnoreCollision(collider, ignore);
+                foreach (var collider in _colliders)
+                {
+                    body.MarrowBody.IgnoreCollision(collider, ignore);
+                }
             }
         }
+        catch { }
     }
 
     private void OnTeleportableCreated(Teleportable teleportable)
