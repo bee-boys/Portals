@@ -34,11 +34,21 @@ public class TeleportableTracker : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (!other.isTrigger)
+        {
+            return;
+        }
+
         OnTriggerEnterEvent?.Invoke(other);
     }
 
     private void OnTriggerExit(Collider other)
     {
+        if (!other.isTrigger)
+        {
+            return;
+        }
+
         OnTriggerExitEvent?.Invoke(other);
     }
 

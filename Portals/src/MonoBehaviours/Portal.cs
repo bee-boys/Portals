@@ -207,6 +207,12 @@ public class Portal : MonoBehaviour
             return;
         }
 
+        if (cam.targetTexture)
+        {
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
+            return;
+        }
+
         int iterations = 1;
         int initialValue = iterations - 1;
         float openPercent = Surface.OpenPercent;

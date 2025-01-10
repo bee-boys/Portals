@@ -71,7 +71,7 @@ public static class ProjectilePatches
 
         var lineCast = Physics.Linecast(start, end, out var hitInfo, ~0, QueryTriggerInteraction.Collide);
 
-        if (lineCast)
+        if (lineCast && hitInfo.collider.isTrigger)
         {
             var portal = hitInfo.collider.GetComponentInParent<Portal>();
 
