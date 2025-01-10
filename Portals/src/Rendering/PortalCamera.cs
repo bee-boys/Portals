@@ -29,7 +29,7 @@ public class PortalCamera
 
         Camera = GameObject.AddComponent<Camera>();
         Camera.enabled = false;
-        Camera.useOcclusionCulling = false;
+        Camera.useOcclusionCulling = false; // Breaks with oblique camera matrices
         Camera.allowHDR = true;
         Camera.allowMSAA = false;
         Camera.clearFlags = CameraClearFlags.SolidColor;
@@ -37,7 +37,7 @@ public class PortalCamera
 
         var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
         data.antialiasing = AntialiasingMode.None;
-        data.allowXRRendering = false;
+        data.allowXRRendering = true;
 
         var (width, height) = GetDimensions();
 
