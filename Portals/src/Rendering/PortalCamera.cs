@@ -4,8 +4,6 @@ using UnityEngine.XR;
 
 using Portals.MonoBehaviours;
 
-using System;
-
 namespace Portals.Rendering;
 
 public class PortalCamera

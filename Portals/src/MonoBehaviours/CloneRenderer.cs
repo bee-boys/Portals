@@ -208,7 +208,7 @@ public class CloneRenderer : MonoBehaviour
             var meshFilter = _skinnedToCloneFilter[renderer];
 
             cloneRenderer.shadowCastingMode = renderer.shadowCastingMode;
-            cloneRenderer.sharedMaterials = cloneRenderer.sharedMaterials;
+            cloneRenderer.sharedMaterials = renderer.sharedMaterials;
 
             // Update positions
             var cloneTransform = meshFilter.transform;
