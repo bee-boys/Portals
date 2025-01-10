@@ -60,9 +60,7 @@ public class PortalCamera
             height = Screen.height;
         }
 
-        var min = Math.Min(width, height);
-
-        return (min, min);
+        return (width, height);
     }
 
     public void Destroy()
