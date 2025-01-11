@@ -10,7 +10,6 @@ using MelonLoader;
 
 using Portals.Pooling;
 
-using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Audio;
 
 namespace Portals.MonoBehaviours;
@@ -30,6 +29,8 @@ public class PortalGun : MonoBehaviour
     public Il2CppValueField<Color> secondaryInsideColor;
 
     public Il2CppValueField<int> portalShape;
+
+    public Il2CppValueField<int> portalId;
 
     public Il2CppReferenceField<Transform> firePoint;
 
@@ -60,6 +61,9 @@ public class PortalGun : MonoBehaviour
     public PortalShape PortalShape => (PortalShape)portalShape.Get();
 
     [HideFromIl2Cpp]
+    public int PortalId => portalId.Get();
+
+    [HideFromIl2Cpp]
     public Transform FirePoint => firePoint.Get();
 
     [HideFromIl2Cpp]
@@ -68,9 +72,6 @@ public class PortalGun : MonoBehaviour
     [HideFromIl2Cpp]
     public AudioClip[] SecondaryOpenSounds => _secondaryOpenSounds;
     #endregion
-
-    private Portal _primaryPortal = null;
-    private Portal _secondaryPortal = null;
 
     #region METHODS
     public void Fire(bool primary) => Fire(primary, PortalConstants.DefaultSize);
@@ -127,18 +128,22 @@ public class PortalGun : MonoBehaviour
 
         var rotation = Quaternion.LookRotation(normal, up);
 
-        if (primary && _primaryPortal)
+        var spawnInfo = new PortalSpawner.PortalSpawnInfo()
         {
-            _primaryPortal.GetComponent<Poolee>().Despawn();
-            _primaryPortal = null;
-        }
-        else if (!primary && _secondaryPortal)
-        {
-            _secondaryPortal.GetComponent<Poolee>().Despawn();
-            _secondaryPortal = null;
-        }
+            Position = position,
+            Rotation = rotation,
+            Size = size,
+            Shape = PortalShape,
 
-        PortalSpawner.Spawn(position, rotation, size, PortalShape, (portal) =>
+            Primary = primary,
+            ID = PortalId,
+
+            SpawnCallback = OnPortalSpawned,
+        };
+
+        PortalSpawner.Spawn(spawnInfo);
+
+        void OnPortalSpawned(Portal portal)
         {
             portal.WallColliders.Clear();
 
@@ -163,24 +168,14 @@ public class PortalGun : MonoBehaviour
             {
                 portal.Surface.SetOutline(PrimaryOutsideColor);
                 portal.Surface.SetInside(PrimaryInsideColor);
-
-                _primaryPortal = portal;
             }
             else
             {
                 portal.Surface.SetOutline(SecondaryOutsideColor);
                 portal.Surface.SetInside(SecondaryInsideColor);
-
-                _secondaryPortal = portal;
             }
 
             portal.Expander.Expand();
-
-            if (_primaryPortal && _secondaryPortal)
-            {
-                _primaryPortal.OtherPortal = _secondaryPortal;
-                _secondaryPortal.OtherPortal = _primaryPortal;
-            }
 
             var openSounds = primary ? PrimaryOpenSounds : SecondaryOpenSounds;
 
@@ -188,7 +183,7 @@ public class PortalGun : MonoBehaviour
             {
                 Audio3dManager.PlayAtPoint(openSounds, position, Audio3dManager.hardInteraction, 0.4f, 1f, new(0f), new(0.4f), new(1f));
             }
-        });
+        }
     }
     #endregion
 
