@@ -322,7 +322,6 @@ public class TeleportableRigManager : Teleportable
 
             GameObject instance = GameObject.Instantiate(avatar, CloneCreator.TempCloningTransform);
             instance.SetActive(false);
-            instance.name = avatar.name;
 
             instance.transform.parent = RigManager.transform;
             instance.transform.SetPositionAndRotation(currentAvatar.position, currentAvatar.rotation);
