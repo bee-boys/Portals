@@ -29,7 +29,7 @@ public static class PortalSpawner
 
         AssetSpawner.Register(spawnable);
 
-        var scale = new Vector3(size.x, size.y, Mathf.Min(size.x, size.y));
+        var scale = new Vector3(size.x, size.y, 1f);
 
         var spawnTask = AssetSpawner.SpawnAsync(spawnable, position, rotation, new(scale), null, false, new(0), null, null);
         var awaiter = spawnTask.GetAwaiter();

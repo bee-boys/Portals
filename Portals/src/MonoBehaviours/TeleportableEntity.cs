@@ -5,6 +5,7 @@ using UnityEngine;
 using MelonLoader;
 
 using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.PuppetMasta;
 
 namespace Portals.MonoBehaviours;
 
@@ -56,6 +57,7 @@ public class TeleportableEntity : Teleportable
         var newScale = newMatrix.lossyScale;
 
         var scaleFactor = Mathf.Abs((newScale.x / oldScale.x) * (newScale.y / oldScale.y) * (newScale.z / oldScale.z));
+        bool changedScale = !Mathf.Approximately(scaleFactor, 1f);
 
         transform.localScale = newScale;
 
@@ -73,6 +75,22 @@ public class TeleportableEntity : Teleportable
 
             rigidbody.velocity = outMatrix.MultiplyVector(inMatrix.inverse.MultiplyVector(rigidbody.velocity));
             rigidbody.angularVelocity = outMatrix.rotation * (inMatrix.inverse.rotation * rigidbody.angularVelocity);
+        }
+
+        if (changedScale)
+        {
+            foreach (var joint in MarrowEntity.Joints)
+            {
+                if (!joint.HasConfigJoint)
+                {
+                    continue;
+                }
+
+                var configJoint = joint._configurableJoint;
+
+                configJoint.anchor = configJoint.anchor;
+                configJoint.connectedAnchor = configJoint.connectedAnchor;
+            }
         }
 
         // Update portals

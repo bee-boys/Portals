@@ -29,20 +29,5 @@ public class TeleportablePuppetMaster : TeleportableEntity
         PuppetMaster.updateJointAnchors = false;
 
         base.Teleport(inPortal, outPortal);
-
-        foreach (var muscle in PuppetMaster.muscles)
-        {
-            var marrowJoint = muscle.marrowJoint;
-
-            if (!marrowJoint || !marrowJoint.HasConfigJoint)
-            {
-                continue;
-            }
-
-            var configJoint = marrowJoint._configurableJoint;
-
-            configJoint.anchor = configJoint.anchor;
-            configJoint.connectedAnchor = configJoint.connectedAnchor;
-        }
     }
 }

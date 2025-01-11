@@ -74,13 +74,13 @@ public class Portal : MonoBehaviour
     public Vector2 Size => size.Get();
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalEnterMatrix => Matrix4x4.TRS(transform.position, transform.rotation, transform.lossyScale);
+    public Matrix4x4 PortalEnterMatrix => Matrix4x4.TRS(transform.position, transform.rotation, GetFlatScale(transform.lossyScale));
 
     [HideFromIl2Cpp]
     public Matrix4x4 PortalEnterMatrixInverse => PortalEnterMatrix.inverse;
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalExitMatrix => Matrix4x4.TRS(transform.position, Quaternion.AngleAxis(180f, transform.up) * transform.rotation, transform.lossyScale);
+    public Matrix4x4 PortalExitMatrix => Matrix4x4.TRS(transform.position, Quaternion.AngleAxis(180f, transform.up) * transform.rotation, GetFlatScale(transform.lossyScale));
 
     [HideFromIl2Cpp]
     public Matrix4x4 PortalExitMatrixInverse => PortalExitMatrix.inverse;
@@ -167,6 +167,13 @@ public class Portal : MonoBehaviour
 
         OpenControllerRigPatches.PreBeginCameraRendering -= OnPreBeginCameraRendering;
         OpenControllerRigPatches.BeginCameraRendering -= OnBeginCameraRendering;
+    }
+
+    private Vector3 GetFlatScale(Vector3 scale)
+    {
+        scale.z = Math.Min(scale.x, scale.y);
+
+        return scale;
     }
 
     public bool HasCamera(Camera cam)
@@ -262,7 +269,7 @@ public class Portal : MonoBehaviour
 
             var (left, right) = GetEyes();
 
-            var scaleDifference = CalculateScaleDifference(transform, otherPortalTransform);
+            var scaleDifference = CalculateScaleDifference(PortalEnterMatrix, OtherPortal.PortalExitMatrix);
 
             var offsetMatrix = Matrix4x4.TRS(newPosition, newRotation, Matrix4x4.Inverse(Matrix4x4.Scale(scaleDifference)) * mainCameraTransform.lossyScale);
 
@@ -381,10 +388,10 @@ public class Portal : MonoBehaviour
         }
     }
 
-    private static Vector3 CalculateScaleDifference(Transform portal, Transform other)
+    private static Vector3 CalculateScaleDifference(Matrix4x4 portalMatrix, Matrix4x4 otherMatrix)
     {
-        var selfScale = portal.lossyScale;
-        var otherScale = other.lossyScale;
+        var selfScale = portalMatrix.lossyScale;
+        var otherScale = otherMatrix.lossyScale;
 
         var scaleDifference = new Vector3(selfScale.x / otherScale.x, selfScale.y / otherScale.y, selfScale.z / otherScale.z);
 
