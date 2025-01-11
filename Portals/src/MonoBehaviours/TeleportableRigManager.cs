@@ -312,23 +312,41 @@ public class TeleportableRigManager : Teleportable
 
     private void ScalePlayer(float factor)
     {
-        var avatar = RigManager.avatar;
-        var crate = RigManager.AvatarCrate;
+        var newScale = RigManager.avatar.transform.localScale * factor;
 
-        var newScale = avatar.transform.localScale * factor;
+        var crate = RigManager.AvatarCrate.Crate;
 
-        RigManager._avatar = RigManager.CalibrationAvatar;
+        var onLoaded = (GameObject avatar) =>
+        {
+            var currentAvatar = RigManager.avatar.transform;
 
-        avatar.transform.localScale = newScale;
-        avatar.PreComputed = false;
+            GameObject instance = GameObject.Instantiate(avatar, CloneCreator.TempCloningTransform);
+            instance.SetActive(false);
 
-        RigManager.SwitchAvatar(avatar);
+            instance.transform.parent = RigManager.transform;
+            instance.transform.SetPositionAndRotation(currentAvatar.position, currentAvatar.rotation);
+            instance.transform.localScale = newScale;
 
-        RigManager._avatarCrate = crate;
-        RigManager.onAvatarSwapped?.Invoke();
-        RigManager.onAvatarSwapped2?.Invoke(crate.Barcode);
+            var avatarComponent = instance.GetComponent<Avatar>();
+            RigManager.SwitchAvatar(avatarComponent);
 
-        PlayerRefs.Instance.PlayerBodyVitals.PROPEGATE_SOFT();
+            RigManager._avatarCrate = new AvatarCrateReference(crate.Barcode);
+            RigManager.onAvatarSwapped?.Invoke();
+            RigManager.onAvatarSwapped2?.Invoke(crate.Barcode);
+
+            PlayerRefs.Instance.PlayerBodyVitals.PROPEGATE_SOFT();
+        };
+
+        var asset = crate.MainGameObject.Asset;
+
+        if (asset != null)
+        {
+            onLoaded(asset);
+        }
+        else
+        {
+            crate.LoadAsset(onLoaded);
+        }
     }
 
     private static void TransferHands(Hand leftHand, Hand rightHand, Portal portal)
