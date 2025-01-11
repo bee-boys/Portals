@@ -318,13 +318,11 @@ public class TeleportableRigManager : Teleportable
 
         var onLoaded = (GameObject avatar) =>
         {
-            var currentAvatar = RigManager.avatar.transform;
-
             GameObject instance = GameObject.Instantiate(avatar, CloneCreator.TempCloningTransform);
             instance.SetActive(false);
 
             instance.transform.parent = RigManager.transform;
-            instance.transform.SetPositionAndRotation(currentAvatar.position, currentAvatar.rotation);
+            instance.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
             instance.transform.localScale = newScale;
 
             var avatarComponent = instance.GetComponent<Avatar>();
