@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 
@@ -212,7 +213,12 @@ public class TeleportableBody : MonoBehaviour
 
     public void CalculateTracker()
     {
-        MarrowBody.CalculateBounds();
+        bool nullColliders = MarrowBody.Colliders.Any((c) => c == null);
+
+        if (!nullColliders)
+        {
+            MarrowBody.CalculateBounds();
+        }
 
         // Bounds is scaled, while _bounds is unscaled
         var unscaledBounds = MarrowBody._bounds;
