@@ -17,8 +17,6 @@ public class PortalProjectile : MonoBehaviour
 {
     public PortalProjectile(IntPtr intPtr) : base(intPtr) { }
 
-    public static readonly LayerMask HitMask = ~(1 << (int)MarrowLayers.Football);
-
     public struct ProjectileData
     {
         public Vector3 Position { get; set; }
@@ -146,7 +144,7 @@ public class PortalProjectile : MonoBehaviour
 
         transform.position = endPosition;
 
-        if (Physics.Linecast(startPosition, endPosition, out var hitInfo, HitMask, QueryTriggerInteraction.Ignore))
+        if (Physics.Linecast(startPosition, endPosition, out var hitInfo, PortalConstants.HitMask, QueryTriggerInteraction.Ignore))
         { 
             CheckHit(hitInfo);
             return;
@@ -170,7 +168,7 @@ public class PortalProjectile : MonoBehaviour
         var startPosition = transform.position;
         var direction = _projectileData.Direction;
 
-        if (!Physics.Raycast(startPosition, direction, out var hitInfo, float.PositiveInfinity, HitMask, QueryTriggerInteraction.Ignore))
+        if (!Physics.Raycast(startPosition, direction, out var hitInfo, float.PositiveInfinity, PortalConstants.HitMask, QueryTriggerInteraction.Ignore))
         {
             Stop();
             return;

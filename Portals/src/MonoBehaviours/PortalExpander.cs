@@ -109,7 +109,7 @@ public class PortalExpander : MonoBehaviour
             var above = newPosition + normal * 0.1f;
             var below = newPosition - normal * 0.1f;
 
-            if (!Physics.Linecast(above, below, ~0, QueryTriggerInteraction.Ignore))
+            if (!Physics.Linecast(above, below, PortalConstants.HitMask, QueryTriggerInteraction.Ignore))
             {
                 break;
             }
@@ -152,7 +152,7 @@ public class PortalExpander : MonoBehaviour
         RaycastHit offsetInfo = default;
         bool foundOffsetRay = false;
 
-        foreach (var hit in Physics.RaycastAll(selfPosition, fromTo, Vector3.Scale(transform.lossyScale, fromTo).magnitude * 2f, ~0, QueryTriggerInteraction.Ignore))
+        foreach (var hit in Physics.RaycastAll(selfPosition, fromTo, Vector3.Scale(transform.lossyScale, fromTo).magnitude * 2f, PortalConstants.HitMask, QueryTriggerInteraction.Ignore))
         {
             if (hit.rigidbody)
             {
@@ -196,7 +196,7 @@ public class PortalExpander : MonoBehaviour
             var above = newPosition + normal * 0.1f;
             var below = newPosition - normal * 0.1f;
 
-            if (!Physics.Linecast(above, below, ~0, QueryTriggerInteraction.Ignore))
+            if (!Physics.Linecast(above, below, PortalConstants.HitMask, QueryTriggerInteraction.Ignore))
             {
                 break;
             }

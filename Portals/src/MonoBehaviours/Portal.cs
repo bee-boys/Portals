@@ -129,7 +129,7 @@ public class Portal : MonoBehaviour
         {
             if (collider.isTrigger)
             {
-                collider.gameObject.layer = (int)MarrowLayers.Socket;
+                collider.gameObject.layer = PortalConstants.PortalLayer;
             }
         }
 

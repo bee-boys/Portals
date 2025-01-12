@@ -146,7 +146,7 @@ public class PortalGun : MonoBehaviour
             var portalPosition = portal.transform.position;
             var portalRotation = portal.transform.rotation;
 
-            var overlapBox = Physics.OverlapBox(portalPosition, new Vector3(size.x * 0.5f, size.y * 0.5f, 2f), portalRotation, ~0, QueryTriggerInteraction.Ignore);
+            var overlapBox = Physics.OverlapBox(portalPosition, new Vector3(size.x * 0.5f, size.y * 0.5f, 2f), portalRotation, PortalConstants.HitMask, QueryTriggerInteraction.Ignore);
 
             foreach (var hit in overlapBox)
             {

@@ -22,7 +22,7 @@ public class TeleportableTracker : MonoBehaviour
 
     private void Awake()
     {
-        gameObject.layer = (int)MarrowLayers.Plug;
+        gameObject.layer = PortalConstants.TrackerLayer;
 
         var kinematicRb = gameObject.AddComponent<Rigidbody>();
         kinematicRb.isKinematic = true;

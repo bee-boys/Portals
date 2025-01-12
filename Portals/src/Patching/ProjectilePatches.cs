@@ -69,7 +69,7 @@ public static class ProjectilePatches
         var start = __instance.transform.position;
         var end = __instance.transform.position + __instance._direction * __instance.currentSpeed * Time.deltaTime;
 
-        var lineCast = Physics.Linecast(start, end, out var hitInfo, ~0, QueryTriggerInteraction.Collide);
+        var lineCast = Physics.Linecast(start, end, out var hitInfo, PortalConstants.PortalLayer, QueryTriggerInteraction.Collide);
 
         if (lineCast && hitInfo.collider.isTrigger)
         {
