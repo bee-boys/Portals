@@ -6,6 +6,7 @@ using MelonLoader;
 
 using Il2CppSLZ.Marrow.Pool;
 using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.Audio;
 
 using Portals.Pooling;
 
@@ -31,6 +32,8 @@ public class PortalProjectile : MonoBehaviour
         public PortalSpawner.PortalSpawnInfo SpawnInfo { get; set; }
 
         public float MaxTime { get; set; }
+
+        public AudioClip[] InvalidSounds { get; set; }
     }
 
     private ProjectileData _projectileData = default;
@@ -223,5 +226,12 @@ public class PortalProjectile : MonoBehaviour
     private void OnInvalidHit(Vector3 position, Quaternion rotation)
     {
         PortalEffectSpawner.PlayImpactEffect(position, rotation, _projectileData.Color);
+
+        var invalidSounds = _projectileData.InvalidSounds;
+
+        if (invalidSounds != null)
+        {
+            Audio3dManager.PlayAtPoint(invalidSounds, position, Audio3dManager.hardInteraction, 0.6f, 1f, new(0f), new(0.4f), new(1f));
+        }
     }
 }

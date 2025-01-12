@@ -40,12 +40,15 @@ public class PortalGun : MonoBehaviour
     public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> secondaryOpenSounds;
 
     public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> fizzleSounds;
+
+    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> invalidSounds;
     #endregion
 
     #region FIELDS
     private AudioClip[] _primaryOpenSounds = null;
     private AudioClip[] _secondaryOpenSounds = null;
     private AudioClip[] _fizzleSounds = null;
+    private AudioClip[] _invalidSounds = null;
     #endregion
 
     #region PROPERTIES
@@ -78,6 +81,9 @@ public class PortalGun : MonoBehaviour
 
     [HideFromIl2Cpp]
     public AudioClip[] FizzleSounds => _fizzleSounds;
+
+    [HideFromIl2Cpp]
+    public AudioClip[] InvalidSounds => _invalidSounds;
 
     [HideFromIl2Cpp]
     public MarrowBody MarrowBody { get; set; } = null;
@@ -130,6 +136,7 @@ public class PortalGun : MonoBehaviour
             Direction = direction,
             MaxTime = 3f,
             Position = FirePoint.position,
+            InvalidSounds = InvalidSounds,
         });
 
         void OnPortalSpawned(Portal portal)
@@ -197,6 +204,13 @@ public class PortalGun : MonoBehaviour
         if (fizzleSounds != null)
         {
             _fizzleSounds = fizzleSounds;
+        }
+
+        var invalidSounds = this.invalidSounds.Get();
+
+        if (invalidSounds != null)
+        {
+            _invalidSounds = invalidSounds;
         }
     }
     #endregion
