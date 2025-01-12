@@ -37,7 +37,8 @@ public class PortalProjectile : MonoBehaviour
     private Poolee _poolee = null;
 
     private bool _shot = false;
-    private float _timer = 0f;
+    private float _travelTimer = 0f;
+    private float _despawnTimer = 0f;
 
     private ParticleSystem[] _particleSystems = null;
     private TrailRenderer[] _trailRenderers = null;
@@ -56,7 +57,8 @@ public class PortalProjectile : MonoBehaviour
     private void OnDisable()
     {
         _shot = false;
-        _timer = 0f;
+        _travelTimer = 0f;
+        _despawnTimer = 0f;
     }
 
     public void Fire(ProjectileData data)
@@ -66,7 +68,7 @@ public class PortalProjectile : MonoBehaviour
         transform.position = data.Position;
         transform.rotation = Quaternion.LookRotation(data.Direction);
 
-        _timer = data.MaxTime;
+        _travelTimer = data.MaxTime;
 
         var color = data.Color;
 
@@ -93,18 +95,37 @@ public class PortalProjectile : MonoBehaviour
         _shot = true;
     }
 
+    public void Stop()
+    {
+        _shot = false;
+
+        foreach (var particleSystem in _particleSystems)
+        {
+            particleSystem.Stop();
+        }
+
+        _despawnTimer = 1f;
+    }
+
     public void FixedUpdate()
     {
+        var deltaTime = Time.fixedDeltaTime;
+
         if (!_shot)
         {
+            _despawnTimer -= deltaTime;
+
+            if (_despawnTimer <= 0f )
+            {
+                Despawn();
+            }
+
             return;
         }
 
-        var deltaTime = Time.fixedDeltaTime;
+        _travelTimer -= deltaTime;
 
-        _timer -= deltaTime;
-
-        if (_timer <= 0f)
+        if (_travelTimer <= 0f)
         {
             EndingRaycast();
             return;
@@ -141,7 +162,7 @@ public class PortalProjectile : MonoBehaviour
 
         if (!Physics.Raycast(startPosition, direction, out var hitInfo, float.PositiveInfinity, HitMask, QueryTriggerInteraction.Ignore))
         {
-            Despawn();
+            Stop();
             return;
         }
 
@@ -169,14 +190,14 @@ public class PortalProjectile : MonoBehaviour
         if (hitInfo.rigidbody)
         {
             OnInvalidHit(position, rotation);
-            Despawn();
+            Stop();
             return;
         }
 
         if (hitInfo.collider.GetComponentInParent<Portal>())
         {
             OnInvalidHit(position, rotation);
-            Despawn();
+            Stop();
             return;
         }
 
@@ -186,7 +207,7 @@ public class PortalProjectile : MonoBehaviour
 
         PortalSpawner.Spawn(spawnInfo);
 
-        Despawn();
+        Stop();
         return;
     }
 

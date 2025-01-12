@@ -86,18 +86,12 @@ public class PortalGun : MonoBehaviour
     #region METHODS
     public void Fizzle()
     {
-        bool fizzled = PortalSpawner.Fizzle(new PortalSpawner.PortalFizzleInfo()
+        PortalSpawner.Fizzle(new PortalSpawner.PortalFizzleInfo()
         {
             Primary = true,
             Secondary = true,
             ID = PortalId,
         });
-
-        // Shake the gun
-        if (fizzled && MarrowBody)
-        {
-            MarrowBody.AddTorque(FirePoint.forward * -10f, ForceMode.Impulse);
-        }
     }
 
     public void Fire(bool primary) => Fire(primary, PortalConstants.DefaultSize);
