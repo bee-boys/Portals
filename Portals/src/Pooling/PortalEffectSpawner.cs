@@ -65,10 +65,15 @@ public static class PortalEffectSpawner
                 return;
             }
 
-            var particleSystem = result.GetComponentInParent<ParticleSystem>();
+            var particleSystems = result.GetComponentsInChildren<ParticleSystem>();
 
-            particleSystem.startColor = color;
-            particleSystem.Play();
+            foreach (var particleSystem in particleSystems)
+            {
+                particleSystem.startColor = color;
+
+                particleSystem.Clear();
+                particleSystem.Play();
+            }
         };
         awaiter.OnCompleted(continuation);
     }
