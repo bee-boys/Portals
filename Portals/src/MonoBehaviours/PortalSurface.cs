@@ -109,17 +109,12 @@ public class PortalSurface : MonoBehaviour
     #region METHODS
     public void SetOutline(Color color)
     {
-        SurfaceMaterial.SetColor("_Outline", color);
+        SurfaceMaterial.SetColor(PortalShaderConstants.OutlineId, color);
     }
     
     public void SetInside(Color color)
     {
-        SurfaceMaterial.SetColor("_Inside", color);
-    }
-
-    public void SetOpen(float open)
-    {
-        SurfaceMaterial.SetFloat("_Open", open);
+        SurfaceMaterial.SetColor(PortalShaderConstants.InsideId, color);
     }
     #endregion
 

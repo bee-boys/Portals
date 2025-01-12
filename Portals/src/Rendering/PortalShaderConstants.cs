@@ -12,4 +12,7 @@ public static class PortalShaderConstants
     public static readonly int TargetEyeId = Shader.PropertyToID("_TargetEye");
 
     public static readonly int OpenId = Shader.PropertyToID("_Open");
+
+    public static readonly int OutlineId = Shader.PropertyToID("_Outline");
+    public static readonly int InsideId = Shader.PropertyToID("_Inside");
 }
