@@ -89,6 +89,8 @@ public class PortalProjectile : MonoBehaviour
             trailRenderer.startColor = color;
             trailRenderer.endColor = Color.clear;
 
+            trailRenderer.time = 0.5f;
+
             trailRenderer.Clear();
         }
 
@@ -102,6 +104,11 @@ public class PortalProjectile : MonoBehaviour
         foreach (var particleSystem in _particleSystems)
         {
             particleSystem.Stop();
+        }
+
+        foreach (var trailRenderer in _trailRenderers)
+        {
+            trailRenderer.time = 0.01f;
         }
 
         _despawnTimer = 1f;
