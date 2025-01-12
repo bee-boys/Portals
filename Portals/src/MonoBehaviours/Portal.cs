@@ -226,18 +226,7 @@ public class Portal : MonoBehaviour
 
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
     {
-        // Don't render if there isn't a portal to render!
         if (!OtherPortal)
-        {
-            return;
-        }
-
-        if (Surface.FrontRenderer != null && !Surface.FrontRenderer.isVisible && !Surface.BackRenderer.isVisible)
-        {
-            return;
-        }
-
-        if (cam.orthographic)
         {
             return;
         }
@@ -250,6 +239,16 @@ public class Portal : MonoBehaviour
         if (cam.targetTexture)
         {
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
+            return;
+        }
+
+        if (cam.orthographic)
+        {
+            return;
+        }
+
+        if (Surface.FrontRenderer != null && !Surface.FrontRenderer.isVisible && !Surface.BackRenderer.isVisible)
+        {
             return;
         }
 
