@@ -143,13 +143,16 @@ public class PortalExpander : MonoBehaviour
 
     private void ExpandNormal(BoxCollider collider)
     {
-        var selfPosition = transform.position;
+        var direction = collider.transform.right;
+
+        var rayOffset = direction * 0.01f;
+        var selfPosition = transform.position + rayOffset;
         var fromTo = -collider.transform.forward;
 
         RaycastHit offsetInfo = default;
         bool foundOffsetRay = false;
 
-        foreach (var hit in Physics.RaycastAll(selfPosition, fromTo, Vector3.Scale(transform.lossyScale, fromTo).magnitude + 0.01f, ~0, QueryTriggerInteraction.Ignore))
+        foreach (var hit in Physics.RaycastAll(selfPosition, fromTo, Vector3.Scale(transform.lossyScale, fromTo).magnitude * 2f, ~0, QueryTriggerInteraction.Ignore))
         {
             if (hit.rigidbody)
             {
@@ -176,10 +179,9 @@ public class PortalExpander : MonoBehaviour
             return;
         }
 
-        collider.transform.position = offsetInfo.point;
+        collider.transform.position = offsetInfo.point - rayOffset;
 
         var start = collider.transform.position;
-        var direction = collider.transform.right;
 
         var normal = collider.transform.forward;
 
