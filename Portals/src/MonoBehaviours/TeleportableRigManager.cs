@@ -42,6 +42,9 @@ public class TeleportableRigManager : Teleportable
 
     private Transform _headset = null;
 
+    private InventorySlotReceiver[] _slots = null;
+    public InventorySlotReceiver[] Slots => _slots;
+
     private Il2CppSystem.Action _onPostLateUpdate = null;
 
     protected override void OnTeleportableAwake()
@@ -54,6 +57,8 @@ public class TeleportableRigManager : Teleportable
 
         _openControllerRig = _rigManager.controllerRig.TryCast<OpenControllerRig>();
         _headset = _openControllerRig.headset;
+
+        _slots = GetComponentsInChildren<InventorySlotReceiver>();
 
         _physicsRig = _rigManager.physicsRig;
 
@@ -333,6 +338,8 @@ public class TeleportableRigManager : Teleportable
             RigManager.onAvatarSwapped2?.Invoke(crate.Barcode);
 
             PlayerRefs.Instance.PlayerBodyVitals.PROPEGATE_SOFT();
+
+            ScaleSlots(factor);
         };
 
         var asset = crate.MainGameObject.Asset;
@@ -344,6 +351,42 @@ public class TeleportableRigManager : Teleportable
         else
         {
             crate.LoadAsset(onLoaded);
+        }
+    }
+
+    private void ScaleSlots(float factor)
+    {
+        foreach (var slot in Slots)
+        {
+            var host = slot._weaponHost;
+
+            if (host == null)
+            {
+                continue;
+            }
+
+            var interactableHost = host.TryCast<InteractableHost>();
+
+            if (interactableHost == null)
+            {
+                continue;
+            }
+
+            var marrowEntity = interactableHost.marrowEntity;
+
+            if (marrowEntity == null)
+            {
+                continue;
+            }
+
+            var teleportableEntity = interactableHost.GetComponent<TeleportableEntity>();
+
+            if (teleportableEntity == null)
+            {
+                continue;
+            }
+
+            teleportableEntity.Scale(factor);
         }
     }
 

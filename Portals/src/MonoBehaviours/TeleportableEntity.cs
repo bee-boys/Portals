@@ -79,24 +79,37 @@ public class TeleportableEntity : Teleportable
 
         if (changedScale)
         {
-            foreach (var joint in MarrowEntity.Joints)
-            {
-                if (!joint.HasConfigJoint)
-                {
-                    continue;
-                }
-
-                var configJoint = joint._configurableJoint;
-
-                configJoint.anchor = configJoint.anchor;
-                configJoint.connectedAnchor = configJoint.connectedAnchor;
-            }
+            UpdateJoints();
         }
 
         // Update portals
         SetPortals(outPortal, inPortal);
 
         UpdateClone();
+    }
+
+    public void Scale(float factor)
+    {
+        transform.localScale = transform.localScale * factor;
+
+        float massFactor = factor * factor * factor;
+
+        foreach (var body in MarrowEntity.Bodies)
+        {
+            if (!body.HasRigidbody)
+            {
+                body._cachedRigidbodyInfo.mass *= massFactor;
+                body._cachedRigidbodyInfo.inertiaTensor *= massFactor;
+                continue;
+            }
+
+            var rigidbody = body._rigidbody;
+
+            rigidbody.mass *= massFactor;
+            rigidbody.inertiaTensor *= massFactor;
+        }
+
+        UpdateJoints();
     }
 
     public override Vector3 GetAnchor()
@@ -113,5 +126,21 @@ public class TeleportableEntity : Teleportable
         center /= mass;
 
         return center;
+    }
+
+    private void UpdateJoints()
+    {
+        foreach (var joint in MarrowEntity.Joints)
+        {
+            if (!joint.HasConfigJoint)
+            {
+                continue;
+            }
+
+            var configJoint = joint._configurableJoint;
+
+            configJoint.anchor = configJoint.anchor;
+            configJoint.connectedAnchor = configJoint.connectedAnchor;
+        }
     }
 }
