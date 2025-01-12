@@ -29,6 +29,13 @@ public static class PortalSpawner
         public Action<Portal> SpawnCallback { get; set; } = null;
     }
 
+    public class PortalFizzleInfo
+    {
+        public bool Primary { get; set; } = false;
+        public bool Secondary { get; set; } = false;
+        public int ID { get; set; } = 0;
+    }
+
     public class PortalPair
     {
         public Portal PrimaryPortal { get; set; } = null;
@@ -36,6 +43,32 @@ public static class PortalSpawner
     }
 
     public static readonly Dictionary<int, PortalPair> PortalLookup = new();
+
+    public static bool Fizzle(PortalFizzleInfo info)
+    {
+        if (!PortalLookup.TryGetValue(info.ID, out var pair))
+        {
+            return false;
+        }
+
+        bool fizzled = false;
+
+        if (info.Primary && pair.PrimaryPortal)
+        {
+            pair.PrimaryPortal.Fizzle();
+            fizzled = true;
+        }
+
+        if (info.Secondary && pair.SecondaryPortal)
+        {
+            pair.SecondaryPortal.Fizzle();
+            fizzled = true;
+        }
+
+        PortalLookup.Remove(info.ID);
+
+        return fizzled;
+    }
 
     public static void Spawn(PortalSpawnInfo info)
     {
@@ -45,7 +78,7 @@ public static class PortalSpawner
 
             if (existingPortal != null)
             {
-                existingPortal.GetComponent<Poolee>().Despawn();
+                existingPortal.Close();
             }
         }
 

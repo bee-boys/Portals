@@ -10,7 +10,10 @@ using System;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 using Il2CppInterop.Runtime.Attributes;
+
 using Il2CppSLZ.Marrow.Interaction;
+using Il2CppSLZ.Marrow.Audio;
+using Il2CppSLZ.Marrow.Pool;
 
 using Portals.Patching;
 using Portals.Rendering;
@@ -90,6 +93,12 @@ public class Portal : MonoBehaviour
 
     [HideFromIl2Cpp]
     public event Action OnClosedEvent;
+
+    [HideFromIl2Cpp]
+    public AudioClip[] FizzleSounds { get; set; } = null;
+
+    [HideFromIl2Cpp]
+    public Poolee Poolee { get; set; } = null;
     #endregion
 
     private PortalCamera _leftEyeCamera = null;
@@ -143,6 +152,8 @@ public class Portal : MonoBehaviour
 
         OpenControllerRigPatches.PreBeginCameraRendering += OnPreBeginCameraRendering;
         OpenControllerRigPatches.BeginCameraRendering += OnBeginCameraRendering;
+
+        Poolee = GetComponentInParent<Poolee>();
     }
 
     private void OnDisable()
@@ -155,6 +166,28 @@ public class Portal : MonoBehaviour
         }
 
         Expander.ToggleCollision(false);
+
+        FizzleSounds = null;
+    }
+
+    public void Close()
+    {
+        OtherPortal = null;
+
+        Poolee.Despawn();
+    }
+
+    public void Fizzle()
+    {
+        OtherPortal = null;
+
+        // Play fizzle effects
+        if (FizzleSounds != null)
+        {
+            Audio3dManager.PlayAtPoint(FizzleSounds, transform.position, Audio3dManager.hardInteraction, 0.6f, 1f, new(0f), new(0.4f), new(1f));
+        }
+
+        Poolee.Despawn();
     }
 
     private void OnDestroy()

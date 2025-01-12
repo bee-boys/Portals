@@ -11,6 +11,7 @@ using MelonLoader;
 using Portals.Pooling;
 
 using Il2CppSLZ.Marrow.Audio;
+using Il2CppSLZ.Marrow.Interaction;
 
 namespace Portals.MonoBehaviours;
 
@@ -37,11 +38,14 @@ public class PortalGun : MonoBehaviour
     public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> primaryOpenSounds;
 
     public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> secondaryOpenSounds;
+
+    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> fizzleSounds;
     #endregion
 
     #region FIELDS
     private AudioClip[] _primaryOpenSounds = null;
     private AudioClip[] _secondaryOpenSounds = null;
+    private AudioClip[] _fizzleSounds = null;
     #endregion
 
     #region PROPERTIES
@@ -71,67 +75,50 @@ public class PortalGun : MonoBehaviour
 
     [HideFromIl2Cpp]
     public AudioClip[] SecondaryOpenSounds => _secondaryOpenSounds;
+
+    [HideFromIl2Cpp]
+    public AudioClip[] FizzleSounds => _fizzleSounds;
+
+    [HideFromIl2Cpp]
+    public MarrowBody MarrowBody { get; set; } = null;
     #endregion
 
     #region METHODS
+    public void Fizzle()
+    {
+        bool fizzled = PortalSpawner.Fizzle(new PortalSpawner.PortalFizzleInfo()
+        {
+            Primary = true,
+            Secondary = true,
+            ID = PortalId,
+        });
+
+        // Shake the gun
+        if (fizzled && MarrowBody)
+        {
+            MarrowBody.AddTorque(FirePoint.forward * -10f, ForceMode.Impulse);
+        }
+    }
+
     public void Fire(bool primary) => Fire(primary, PortalConstants.DefaultSize);
 
     public void Fire(bool primary, float scale) => Fire(primary, PortalConstants.DefaultSize * scale);
 
     public void Fire(bool primary, Vector2 size)
     {
-        var hits = Physics.RaycastAll(FirePoint.position, FirePoint.forward, float.PositiveInfinity, ~0, QueryTriggerInteraction.Ignore);
+        var direction = FirePoint.forward;
+        var velocity = direction * 50f;
 
-        RaycastHit hitInfo = default;
-        bool foundRay = false;
+        var outsideColor = primary ? PrimaryOutsideColor : SecondaryOutsideColor;
+        var insideColor = primary ? PrimaryInsideColor : SecondaryInsideColor;
 
-        foreach (var hit in hits)
+        if (MarrowBody && MarrowBody.HasRigidbody)
         {
-            if (hit.rigidbody)
-            {
-                continue;
-            }
-
-            if (hit.collider.GetComponentInParent<Portal>())
-            {
-                continue;
-            }
-
-            // Get the closest hit
-            if (foundRay && hit.distance >= hitInfo.distance)
-            {
-                continue;
-            }
-
-            hitInfo = hit;
-            foundRay = true;
+            velocity += MarrowBody._rigidbody.velocity;
         }
-
-        if (!foundRay)
-        {
-            return;
-        }
-
-        var normal = hitInfo.normal;
-        var uphill = Vector3.Cross(normal, Vector3.Cross(normal, Vector3.down));
-
-        var position = hitInfo.point + normal * 0.001f;
-
-        var up = uphill;
-
-        float dot = Vector3.Dot(normal, Vector3.up);
-
-        if (dot > 0.99f || dot < -0.99f)
-        {
-            up = (hitInfo.point - FirePoint.position).normalized;
-        }
-
-        var rotation = Quaternion.LookRotation(normal, up);
 
         var spawnInfo = new PortalSpawner.PortalSpawnInfo()
         {
-            Position = position,
-            Rotation = rotation,
             Size = size,
             Shape = PortalShape,
 
@@ -141,13 +128,24 @@ public class PortalGun : MonoBehaviour
             SpawnCallback = OnPortalSpawned,
         };
 
-        PortalSpawner.Spawn(spawnInfo);
+        PortalEffectSpawner.ShootProjectile(new PortalProjectile.ProjectileData()
+        {
+            SpawnInfo = spawnInfo,
+            Color = insideColor,
+            Velocity = velocity,
+            Direction = direction,
+            MaxTime = 3f,
+            Position = FirePoint.position,
+        });
 
         void OnPortalSpawned(Portal portal)
         {
             portal.WallColliders.Clear();
 
-            var overlapBox = Physics.OverlapBox(position, new Vector3(size.x * 0.5f, size.y * 0.5f, 2f), rotation, ~0, QueryTriggerInteraction.Ignore);
+            var portalPosition = portal.transform.position;
+            var portalRotation = portal.transform.rotation;
+
+            var overlapBox = Physics.OverlapBox(portalPosition, new Vector3(size.x * 0.5f, size.y * 0.5f, 2f), portalRotation, ~0, QueryTriggerInteraction.Ignore);
 
             foreach (var hit in overlapBox)
             {
@@ -164,24 +162,18 @@ public class PortalGun : MonoBehaviour
                 portal.WallColliders.Add(hit);
             }
 
-            if (primary)
-            {
-                portal.Surface.SetOutline(PrimaryOutsideColor);
-                portal.Surface.SetInside(PrimaryInsideColor);
-            }
-            else
-            {
-                portal.Surface.SetOutline(SecondaryOutsideColor);
-                portal.Surface.SetInside(SecondaryInsideColor);
-            }
+            portal.Surface.SetOutline(outsideColor);
+            portal.Surface.SetInside(insideColor);
 
             portal.Expander.Expand();
+
+            portal.FizzleSounds = FizzleSounds;
 
             var openSounds = primary ? PrimaryOpenSounds : SecondaryOpenSounds;
 
             if (openSounds != null)
             {
-                Audio3dManager.PlayAtPoint(openSounds, position, Audio3dManager.hardInteraction, 0.4f, 1f, new(0f), new(0.4f), new(1f));
+                Audio3dManager.PlayAtPoint(openSounds, portalPosition, Audio3dManager.hardInteraction, 0.4f, 1f, new(0f), new(0.4f), new(1f));
             }
         }
     }
@@ -190,6 +182,8 @@ public class PortalGun : MonoBehaviour
     #region UNITY
     private void Awake()
     {
+        MarrowBody = GetComponent<MarrowBody>();
+
         var primaryOpenSounds = this.primaryOpenSounds.Get();
 
         if (primaryOpenSounds != null)
@@ -202,6 +196,13 @@ public class PortalGun : MonoBehaviour
         if (secondaryOpenSounds != null)
         {
             _secondaryOpenSounds = secondaryOpenSounds;
+        }
+
+        var fizzleSounds = this.fizzleSounds.Get();
+
+        if (fizzleSounds != null)
+        {
+            _fizzleSounds = fizzleSounds;
         }
     }
     #endregion
