@@ -201,7 +201,9 @@ public class PortalProjectile : MonoBehaviour
             return;
         }
 
-        if (hitInfo.collider.GetComponentInParent<Portal>())
+        var collider = hitInfo.collider;
+
+        if (collider.GetComponentInParent<Portal>() || collider.GetComponent<PortalBlocker>())
         {
             OnInvalidHit(position, rotation);
             Stop();
