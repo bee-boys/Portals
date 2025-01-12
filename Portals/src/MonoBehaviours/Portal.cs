@@ -238,7 +238,6 @@ public class Portal : MonoBehaviour
 
         if (cam.targetTexture)
         {
-            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
             return;
         }
 
