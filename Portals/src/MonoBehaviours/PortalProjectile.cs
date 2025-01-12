@@ -231,7 +231,7 @@ public class PortalProjectile : MonoBehaviour
 
         if (invalidSounds != null)
         {
-            Audio3dManager.PlayAtPoint(invalidSounds, position, Audio3dManager.hardInteraction, 0.6f, 1f, new(0f), new(0.4f), new(1f));
+            Audio3dManager.PlayAtPoint(invalidSounds, position, Audio3dManager.hardInteraction, 1f, 1f, new(0f), new(0.4f), new(1f));
         }
     }
 }
