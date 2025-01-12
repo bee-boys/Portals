@@ -89,7 +89,22 @@ public static class ProjectilePatches
 
         var matrix = Matrix4x4.TRS(projectile.transform.position, Quaternion.LookRotation(projectile._direction), Vector3.one);
 
-        matrix = outMatrix * (inMatrix.inverse * matrix);
+        var matrixInPortal = inMatrix.inverse * matrix;
+
+        var matrixInPortalPosition = matrixInPortal.GetPosition();
+        var matrixInPortalForward = matrixInPortal.rotation * Vector3.forward;
+
+        var plane = new Plane(Vector3.forward, Vector3.zero);
+        var planeRay = new Ray(matrixInPortalPosition, matrixInPortalForward * Mathf.Sign(matrixInPortalPosition.z));
+
+        if (plane.Raycast(planeRay, out var planeEnter))
+        {
+            matrixInPortalPosition += planeRay.direction * planeEnter;
+        }
+
+        matrixInPortal = Matrix4x4.TRS(matrixInPortalPosition, matrixInPortal.rotation, matrixInPortal.lossyScale);
+
+        matrix = outMatrix * matrixInPortal;
 
         projectile.transform.position = matrix.GetPosition();
         projectile._direction = matrix.rotation * Vector3.forward;
