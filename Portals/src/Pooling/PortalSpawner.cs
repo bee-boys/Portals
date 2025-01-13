@@ -112,8 +112,12 @@ public static class PortalSpawner
 
             var portal = result.GetComponentInChildren<Portal>();
 
+            portal.Primary = info.Primary;
+
             if (info.ID.HasValue)
             {
+                portal.ID = info.ID.Value;
+
                 if (!PortalLookup.TryGetValue(info.ID.Value, out var portalPair))
                 {
                     portalPair = new PortalPair();

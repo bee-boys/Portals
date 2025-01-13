@@ -99,6 +99,12 @@ public class Portal : MonoBehaviour
 
     [HideFromIl2Cpp]
     public Poolee Poolee { get; set; } = null;
+
+    [HideFromIl2Cpp]
+    public int? ID { get; set; } = null;
+
+    [HideFromIl2Cpp]
+    public bool Primary { get; set; } = false;
     #endregion
 
     private PortalCamera _leftEyeCamera = null;
