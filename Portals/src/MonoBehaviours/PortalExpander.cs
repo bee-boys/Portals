@@ -159,7 +159,7 @@ public class PortalExpander : MonoBehaviour
                 continue;
             }
 
-            if (hit.collider.GetComponentInParent<PortalExpander>())
+            if (hit.collider.GetComponentInParent<Portal>())
             {
                 continue;
             }
