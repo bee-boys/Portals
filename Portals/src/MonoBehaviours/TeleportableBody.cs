@@ -90,7 +90,10 @@ public class TeleportableBody : MonoBehaviour
     public event Action<TeleportableBody, Portal> OnPortalEnterEvent, OnPortalExitEvent;
 
     [HideFromIl2Cpp]
-    public List<TeleportableBody> PackedBodies { get; set; } = new();
+    public TeleportableBody HostBody { get; private set; } = null;
+
+    [HideFromIl2Cpp]
+    public bool IsPacked { get; private set; } = false;
 
     private void Awake()
     {
@@ -101,32 +104,10 @@ public class TeleportableBody : MonoBehaviour
         CreateTracker();
     }
 
-    private void Start()
-    {
-        Teleportable.OnPortalsEntered += OnTeleportablePortalsEntered;
-        Teleportable.OnPortalsExited += OnTeleportablePortalsExited;
-    }
-
     private void OnDisable()
     {
         TriggeredPortal = null;
         OverridePortal = null;
-    }
-
-    private void OnTeleportablePortalsEntered(Portal inPortal, Portal outPortal)
-    {
-        foreach (var body in PackedBodies)
-        {
-            body.OverridePortal = inPortal;
-        }
-    }
-
-    private void OnTeleportablePortalsExited(Portal inPortal, Portal outPortal)
-    {
-        foreach (var body in PackedBodies)
-        {
-            body.OverridePortal = null;
-        }
     }
 
     private void CheckPortalChange(Portal previous, Portal current)
@@ -256,18 +237,51 @@ public class TeleportableBody : MonoBehaviour
         return Tracker.transform.TransformPoint(Tracker.TrackerCollider.center);
     }
 
-    public void Pack(TeleportableBody parasiteBody)
+    public void Pack(TeleportableBody hostBody)
     {
-        PackedBodies.Add(parasiteBody);
+        // Unpack from existing host body
+        if (IsPacked)
+        {
+            Unpack();
+        }
 
-        parasiteBody.OverridePortal = Teleportable.InPortal;
+        var hostTeleportable = hostBody.Teleportable;
+
+        hostTeleportable.OnPortalsEntered += OnHostPortalsEntered;
+        hostTeleportable.OnPortalsExited += OnHostPortalsExited;
+
+        OverridePortal = hostTeleportable.InPortal;
+
+        HostBody = hostBody;
+        IsPacked = true;
     }
 
-    public void Unpack(TeleportableBody parasiteBody)
+    public void Unpack()
     {
-        PackedBodies.Remove(parasiteBody);
+        if (!IsPacked)
+        {
+            return;
+        }
 
-        parasiteBody.OverridePortal = null;
+        var hostTeleportable = HostBody.Teleportable;
+
+        hostTeleportable.OnPortalsEntered -= OnHostPortalsEntered;
+        hostTeleportable.OnPortalsExited -= OnHostPortalsExited;
+
+        OverridePortal = null;
+
+        HostBody = null;
+        IsPacked = false;
+    }
+
+    private void OnHostPortalsEntered(Portal inPortal, Portal outPortal)
+    {
+        OverridePortal = inPortal;
+    }
+
+    private void OnHostPortalsExited(Portal inPortal, Portal outPortal)
+    {
+        OverridePortal = null;
     }
 
     private readonly List<Collider> _ignoredColliders = new();

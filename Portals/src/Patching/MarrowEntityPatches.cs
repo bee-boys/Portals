@@ -52,20 +52,13 @@ public static class MarrowEntityPatches
             return;
         }
 
-        hostTeleportable.Pack(parasiteTeleportable);
+        parasiteTeleportable.Pack(hostTeleportable);
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(nameof(MarrowEntity.Unpack))]
     public static void Unpack(MarrowBody hostBody, MarrowBody parasiteBody)
     {
-        var hostTeleportable = hostBody.GetComponent<TeleportableBody>();
-
-        if (hostTeleportable == null)
-        {
-            return;
-        }
-
         var parasiteTeleportable = parasiteBody.GetComponent<TeleportableBody>();
 
         if (parasiteTeleportable == null)
@@ -73,6 +66,6 @@ public static class MarrowEntityPatches
             return;
         }
 
-        hostTeleportable.Unpack(parasiteTeleportable);
+        parasiteTeleportable.Unpack();
     }
 }
