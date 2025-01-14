@@ -156,8 +156,8 @@ public class Portal : MonoBehaviour
 
         Surface.CorridorRenderer.enabled = false;
 
-        OpenControllerRigPatches.PreBeginCameraRendering += OnPreBeginCameraRendering;
-        OpenControllerRigPatches.BeginCameraRendering += OnBeginCameraRendering;
+        RenderingHooks.PreBeginCameraRendering += OnPreBeginCameraRendering;
+        RenderingHooks.BeginCameraRendering += OnBeginCameraRendering;
 
         Poolee = GetComponentInParent<Poolee>();
     }
@@ -204,8 +204,8 @@ public class Portal : MonoBehaviour
         _leftEyeCamera.Destroy();
         _rightEyeCamera.Destroy();
 
-        OpenControllerRigPatches.PreBeginCameraRendering -= OnPreBeginCameraRendering;
-        OpenControllerRigPatches.BeginCameraRendering -= OnBeginCameraRendering;
+        RenderingHooks.PreBeginCameraRendering -= OnPreBeginCameraRendering;
+        RenderingHooks.BeginCameraRendering -= OnBeginCameraRendering;
     }
 
     private Vector3 GetFlatScale(Vector3 scale)

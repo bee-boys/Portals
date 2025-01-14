@@ -1,33 +1,20 @@
-﻿using System;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 
 using Il2CppSLZ.Marrow;
 
-using UnityEngine;
-using UnityEngine.Rendering;
+using Portals.Rendering;
 
 namespace Portals.Patching;
 
 [HarmonyPatch(typeof(OpenControllerRig))]
 public static class OpenControllerRigPatches
 {
-    public static event Action<ScriptableRenderContext, Camera> PreBeginCameraRendering;
-    public static event Action<ScriptableRenderContext, Camera> BeginCameraRendering;
-
     [HarmonyPostfix]
-    [HarmonyPatch(nameof(OpenControllerRig.OnBeginCameraRendering))]
-    private static void OnBeginCameraRendering(ScriptableRenderContext ctx, Camera cam)
+    [HarmonyPatch(nameof(OpenControllerRig.OnMarrowReady))]
+    private static void OnMarrowReady()
     {
-        try
-        {
-            PreBeginCameraRendering?.Invoke(ctx, cam);
-
-            BeginCameraRendering?.Invoke(ctx, cam);
-        }
-        catch (Exception e)
-        {
-            PortalsMod.Logger.Error("Caught exception in OnBeginCameraRendering: ", e);
-        }
+        // Hook AFTER the OpenControllerRig has
+        // This way we get the most recent headset position
+        RenderingHooks.HookRenderPipeline();
     }
 }
