@@ -13,6 +13,8 @@ using Portals.Rendering;
 
 namespace Portals.MonoBehaviours;
 
+public delegate void PortalTransitionEvent(Portal inPortal, Portal outPortal);
+
 [RegisterTypeInIl2Cpp]
 public class Teleportable : MonoBehaviour
 {
@@ -20,7 +22,7 @@ public class Teleportable : MonoBehaviour
 
     public static readonly List<Teleportable> Teleportables = new();
 
-    public static event Action<Teleportable> OnTeleportableCreated;
+    public static event Action<Teleportable> OnTeleportableEnabled, OnTeleportableDisabled;
 
     public MarrowEntity MarrowEntity => _marrowEntity;
     private MarrowEntity _marrowEntity = null;
@@ -39,6 +41,9 @@ public class Teleportable : MonoBehaviour
 
     public Portal OutPortal => _outPortal;
 
+    [HideFromIl2Cpp]
+    public event PortalTransitionEvent OnPortalsEntered, OnPortalsExited;
+
     protected Portal _inPortal = null;
     protected Portal _outPortal = null;
 
@@ -51,8 +56,6 @@ public class Teleportable : MonoBehaviour
         Teleportables.Add(this);
 
         OnTeleportableAwake();
-
-        OnTeleportableCreated?.Invoke(this);
     }
 
     private void Start()
@@ -70,11 +73,15 @@ public class Teleportable : MonoBehaviour
     private void OnEnable()
     {
         OnTeleportableEnable();
+
+        OnTeleportableEnabled?.Invoke(this);
     }
 
     private void OnDisable()
     {
         OnTeleportableDisable();
+
+        OnTeleportableDisabled?.Invoke(this);
     }
 
     protected virtual void OnTeleportableAwake() 
@@ -165,6 +172,8 @@ public class Teleportable : MonoBehaviour
         // Reenable collision with the previous portal
         if (_inPortal)
         {
+            OnPortalsExited?.Invoke(_inPortal, _outPortal);
+
             IgnoreCollision(_inPortal, false);
 
             _inPortal.Expander.IgnoreCollision(this, true);
@@ -196,10 +205,17 @@ public class Teleportable : MonoBehaviour
         }
 
         OnPortalsChanged(inPortal, outPortal);
+
+        OnPortalsEntered?.Invoke(inPortal, outPortal);
     }
 
     public void ClearPortals()
     {
+        if (_inPortal && _outPortal)
+        {
+            OnPortalsExited?.Invoke(_inPortal, _outPortal);
+        }
+
         if (_inPortal)
         {
             _inPortal.Expander.IgnoreCollision(this, true);

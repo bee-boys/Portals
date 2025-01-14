@@ -33,4 +33,46 @@ public static class MarrowEntityPatches
             __instance.gameObject.AddComponent<TeleportableEntity>();
         }
     }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(MarrowEntity.Pack))]
+    public static void Pack(MarrowBody hostBody, MarrowBody parasiteBody)
+    {
+        var hostTeleportable = hostBody.GetComponent<TeleportableBody>();
+
+        if (hostTeleportable == null)
+        {
+            return;
+        }
+
+        var parasiteTeleportable = parasiteBody.GetComponent<TeleportableBody>();
+
+        if (parasiteTeleportable == null)
+        {
+            return;
+        }
+
+        hostTeleportable.Pack(parasiteTeleportable);
+    }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(nameof(MarrowEntity.Unpack))]
+    public static void Unpack(MarrowBody hostBody, MarrowBody parasiteBody)
+    {
+        var hostTeleportable = hostBody.GetComponent<TeleportableBody>();
+
+        if (hostTeleportable == null)
+        {
+            return;
+        }
+
+        var parasiteTeleportable = parasiteBody.GetComponent<TeleportableBody>();
+
+        if (parasiteTeleportable == null)
+        {
+            return;
+        }
+
+        hostTeleportable.Unpack(parasiteTeleportable);
+    }
 }

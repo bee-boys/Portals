@@ -89,6 +89,9 @@ public class TeleportableBody : MonoBehaviour
     [HideFromIl2Cpp]
     public event Action<TeleportableBody, Portal> OnPortalEnterEvent, OnPortalExitEvent;
 
+    [HideFromIl2Cpp]
+    public List<TeleportableBody> PackedBodies { get; set; } = new();
+
     private void Awake()
     {
         _marrowBody = GetComponent<MarrowBody>();
@@ -98,10 +101,32 @@ public class TeleportableBody : MonoBehaviour
         CreateTracker();
     }
 
+    private void Start()
+    {
+        Teleportable.OnPortalsEntered += OnTeleportablePortalsEntered;
+        Teleportable.OnPortalsExited += OnTeleportablePortalsExited;
+    }
+
     private void OnDisable()
     {
         TriggeredPortal = null;
         OverridePortal = null;
+    }
+
+    private void OnTeleportablePortalsEntered(Portal inPortal, Portal outPortal)
+    {
+        foreach (var body in PackedBodies)
+        {
+            body.OverridePortal = inPortal;
+        }
+    }
+
+    private void OnTeleportablePortalsExited(Portal inPortal, Portal outPortal)
+    {
+        foreach (var body in PackedBodies)
+        {
+            body.OverridePortal = null;
+        }
     }
 
     private void CheckPortalChange(Portal previous, Portal current)
@@ -229,6 +254,20 @@ public class TeleportableBody : MonoBehaviour
     public Vector3 GetAnchor()
     {
         return Tracker.transform.TransformPoint(Tracker.TrackerCollider.center);
+    }
+
+    public void Pack(TeleportableBody parasiteBody)
+    {
+        PackedBodies.Add(parasiteBody);
+
+        parasiteBody.OverridePortal = Teleportable.InPortal;
+    }
+
+    public void Unpack(TeleportableBody parasiteBody)
+    {
+        PackedBodies.Remove(parasiteBody);
+
+        parasiteBody.OverridePortal = null;
     }
 
     private readonly List<Collider> _ignoredColliders = new();

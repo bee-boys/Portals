@@ -243,9 +243,14 @@ public class PortalExpander : MonoBehaviour
         catch { }
     }
 
-    private void OnTeleportableCreated(Teleportable teleportable)
+    private void OnTeleportableEnabled(Teleportable teleportable)
     {
         IgnoreCollision(teleportable, true);
+    }
+
+    private void OnTeleportableDisabled(Teleportable teleportable)
+    {
+        IgnoreCollision(teleportable, false);
     }
 
     private void IgnoreExistingTeleportables()
@@ -334,14 +339,16 @@ public class PortalExpander : MonoBehaviour
         OverrideLayers();
         OverrideBullets();
 
-        Teleportable.OnTeleportableCreated += OnTeleportableCreated;
+        Teleportable.OnTeleportableEnabled += OnTeleportableEnabled;
+        Teleportable.OnTeleportableDisabled += OnTeleportableDisabled;
 
         IgnoreExistingTeleportables();
     }
 
     private void OnDestroy()
     {
-        Teleportable.OnTeleportableCreated -= OnTeleportableCreated;
+        Teleportable.OnTeleportableEnabled -= OnTeleportableEnabled;
+        Teleportable.OnTeleportableDisabled -= OnTeleportableDisabled;
     }
     #endregion
 }
