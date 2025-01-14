@@ -46,6 +46,8 @@ public class TeleportableEntity : Teleportable
     public override void Teleport(Portal inPortal, Portal outPortal)
     {
         var inMatrix = inPortal.PortalEnterMatrix;
+        var inMatrixInverse = inMatrix.inverse;
+
         var outMatrix = outPortal.PortalExitMatrix;
 
         var newMatrix = CalculateTeleportedMatrix(transform.localToWorldMatrix, inMatrix, outMatrix);
@@ -73,9 +75,11 @@ public class TeleportableEntity : Teleportable
             rigidbody.mass *= scaleFactor;
             rigidbody.inertiaTensor *= scaleFactor;
 
-            rigidbody.velocity = outMatrix.MultiplyVector(inMatrix.inverse.MultiplyVector(rigidbody.velocity));
-            rigidbody.angularVelocity = outMatrix.rotation * (inMatrix.inverse.rotation * rigidbody.angularVelocity);
+            rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity));
+            rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * rigidbody.angularVelocity);
         }
+
+        UpdateThrowing(inMatrixInverse, outMatrix);
 
         if (changedScale)
         {
@@ -141,6 +145,26 @@ public class TeleportableEntity : Teleportable
 
             configJoint.anchor = configJoint.anchor;
             configJoint.connectedAnchor = configJoint.connectedAnchor;
+        }
+    }
+
+    private void UpdateThrowing(Matrix4x4 inMatrixInverse, Matrix4x4 outMatrix)
+    {
+        foreach (var body in Bodies)
+        {
+            if (!body.HasHost)
+            {
+                continue;
+            }
+
+            foreach (var grip in body.Host._grips)
+            {
+                for (var i = 0; i < grip.velocityHistory.Length; i++)
+                {
+                    grip.velocityHistory[i] = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(grip.velocityHistory[i]));
+                    grip.angVelocityHistory[i] = outMatrix.rotation * (inMatrixInverse.rotation * grip.angVelocityHistory[i]);
+                }
+            }
         }
     }
 }
