@@ -197,7 +197,7 @@ public class Teleportable : MonoBehaviour
         IgnoreCollision(inPortal, true);
 
         // Enable collision with its expander
-        _inPortal.Expander.IgnoreCollision(this, false);
+        _inPortal.Expander.IgnoreCollision(this, _initialSign, false);
 
         if (_cloneRenderer)
         {

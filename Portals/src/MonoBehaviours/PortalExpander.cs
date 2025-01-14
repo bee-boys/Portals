@@ -228,6 +228,28 @@ public class PortalExpander : MonoBehaviour
         collider.center = center;
     }
 
+    public void IgnoreCollision(Teleportable teleportable, float sign = 1f, bool ignore = true)
+    {
+        try
+        {
+            var normalColliders = sign > 0f ? _frontColliders : _backColliders;
+
+            foreach (var body in teleportable.Bodies)
+            {
+                foreach (var collider in _sideColliders)
+                {
+                    body.MarrowBody.IgnoreCollision(collider, ignore);
+                }
+
+                foreach (var collider in normalColliders)
+                {
+                    body.MarrowBody.IgnoreCollision(collider, ignore);
+                }
+            }
+        }
+        catch { }
+    }
+
     public void IgnoreCollision(Teleportable teleportable, bool ignore = true)
     {
         try
