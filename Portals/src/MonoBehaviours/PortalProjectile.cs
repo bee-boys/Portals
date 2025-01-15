@@ -5,8 +5,9 @@ using UnityEngine;
 using MelonLoader;
 
 using Il2CppSLZ.Marrow.Pool;
-using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.Marrow.Audio;
+
+using Il2CppInterop.Runtime.Attributes;
 
 using Portals.Pooling;
 
@@ -409,6 +410,7 @@ public class PortalProjectile : MonoBehaviour
         return CheckForPortal(portalOverlap);
     }
 
+    [HideFromIl2Cpp]
     private bool CheckForPortal(Collider[] colliders)
     {
         foreach (var collider in colliders)

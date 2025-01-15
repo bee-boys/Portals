@@ -93,6 +93,9 @@ public class TeleportableBody : MonoBehaviour
     public TeleportableBody HostBody { get; private set; } = null;
 
     [HideFromIl2Cpp]
+    public List<TeleportableBody> ParasiteBodies { get; private set; } = new();
+
+    [HideFromIl2Cpp]
     public bool IsPacked { get; private set; } = false;
 
     private void Awake()
@@ -252,6 +255,8 @@ public class TeleportableBody : MonoBehaviour
 
         OverridePortal = hostTeleportable.InPortal;
 
+        hostBody.ParasiteBodies.Add(this);
+
         HostBody = hostBody;
         IsPacked = true;
     }
@@ -267,6 +272,8 @@ public class TeleportableBody : MonoBehaviour
 
         hostTeleportable.OnPortalsEntered -= OnHostPortalsEntered;
         hostTeleportable.OnPortalsExited -= OnHostPortalsExited;
+
+        HostBody.ParasiteBodies.Remove(this);
 
         OverridePortal = null;
 
@@ -316,5 +323,20 @@ public class TeleportableBody : MonoBehaviour
         }
 
         _ignoredColliders.Clear();
+    }
+
+    public bool IsGrabbed()
+    {
+        if (!HasHost)
+        {
+            return false;
+        }
+
+        if (Host.HandCount() > 0)
+        {
+            return true;
+        }
+
+        return false;
     }
 }

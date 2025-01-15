@@ -8,11 +8,13 @@ using Il2CppSLZ.Marrow.Utilities;
 using Il2CppSLZ.Marrow.Warehouse;
 using Il2CppSLZ.VRMK;
 using Il2CppSLZ.Bonelab;
+using Il2CppSLZ.Marrow.Interaction;
+
+using Il2CppInterop.Runtime.Attributes;
 
 using UnityEngine;
 
 using Portals.Rendering;
-using Il2CppSLZ.Marrow.Interaction;
 
 namespace Portals.MonoBehaviours;
 
@@ -43,6 +45,8 @@ public class TeleportableRigManager : Teleportable
     private Transform _headset = null;
 
     private InventorySlotReceiver[] _slots = null;
+
+    [HideFromIl2Cpp]
     public InventorySlotReceiver[] Slots => _slots;
 
     private Il2CppSystem.Action _onPostLateUpdate = null;
@@ -280,13 +284,10 @@ public class TeleportableRigManager : Teleportable
 
         UpdateArt();
 
-        // Update portals
-        SetPortals(outPortal, inPortal);
-
-        UpdateClone();
-
         // Teleport grips
         TeleportHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal, outPortal);
+
+        base.Teleport(inPortal, outPortal);
     }
 
     private void UpdateArt()

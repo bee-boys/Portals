@@ -86,10 +86,7 @@ public class TeleportableEntity : Teleportable
             UpdateJoints();
         }
 
-        // Update portals
-        SetPortals(outPortal, inPortal);
-
-        UpdateClone();
+        base.Teleport(inPortal, outPortal);
     }
 
     public void Scale(float factor)

@@ -159,6 +159,17 @@ public class Teleportable : MonoBehaviour
 
     public virtual void Teleport(Portal inPortal, Portal outPortal)
     {
+        SetPortals(outPortal, inPortal);
+
+        UpdateClone();
+
+        foreach (var body in Bodies)
+        {
+            foreach (var parasite in body.ParasiteBodies)
+            {
+                parasite.Teleportable.Teleport(inPortal, outPortal);
+            }
+        }
     }
 
     public void SetPortals(Portal inPortal, Portal outPortal)
@@ -347,12 +358,12 @@ public class Teleportable : MonoBehaviour
     {
         foreach (var body in Bodies)
         {
-            if (!body.HasHost)
+            if (body.IsPacked)
             {
-                continue;
+                return true;
             }
 
-            if (body.Host.HandCount() > 0)
+            if (body.IsGrabbed())
             {
                 return true;
             }
