@@ -122,10 +122,31 @@ public class Teleportable : MonoBehaviour
 
         _bodies.Add(body);
 
+        body.Teleportable = this;
+
+        HookBodyPortal(body);
+    }
+
+    public void HookBodyPortal(TeleportableBody body)
+    {
         body.OnPortalEnterEvent += OnPortalEnterCallback;
         body.OnPortalExitEvent += OnPortalExitCallback;
 
-        body.Teleportable = this;
+        if (body.CurrentPortal != null)
+        {
+            OnPortalEnterCallback(body, body.CurrentPortal);
+        }
+    }
+
+    public void UnHookBodyPortal(TeleportableBody body)
+    {
+        body.OnPortalEnterEvent -= OnPortalEnterCallback;
+        body.OnPortalExitEvent -= OnPortalExitCallback;
+
+        if (body.CurrentPortal != null)
+        {
+            OnPortalExitCallback(body, body.CurrentPortal);
+        }
     }
 
     protected int _portalCount = 0;
@@ -165,6 +186,11 @@ public class Teleportable : MonoBehaviour
 
         foreach (var body in Bodies)
         {
+            if (!body.HasRigidbody)
+            {
+                continue;
+            }
+
             foreach (var parasite in body.ParasiteBodies)
             {
                 parasite.Teleportable.Teleport(inPortal, outPortal);

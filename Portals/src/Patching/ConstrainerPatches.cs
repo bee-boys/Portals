@@ -13,6 +13,12 @@ public static class ConstrainerPatches
     [HarmonyPatch(nameof(Constrainer.PrimaryButtonUp))]
     public static void PrimaryButtonUp(Constrainer __instance)
     {
+        // Only run when creating constraints
+        if (__instance.mode == Constrainer.ConstraintMode.Remove)
+        {
+            return;
+        }
+
         if (__instance._gO1 == null)
         {
             return;

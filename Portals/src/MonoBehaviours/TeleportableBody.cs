@@ -248,12 +248,8 @@ public class TeleportableBody : MonoBehaviour
             Unpack();
         }
 
-        var hostTeleportable = hostBody.Teleportable;
-
-        hostTeleportable.OnPortalsEntered += OnHostPortalsEntered;
-        hostTeleportable.OnPortalsExited += OnHostPortalsExited;
-
-        OverridePortal = hostTeleportable.InPortal;
+        hostBody.Teleportable.HookBodyPortal(this);
+        Teleportable.HookBodyPortal(hostBody);
 
         hostBody.ParasiteBodies.Add(this);
 
@@ -268,27 +264,13 @@ public class TeleportableBody : MonoBehaviour
             return;
         }
 
-        var hostTeleportable = HostBody.Teleportable;
-
-        hostTeleportable.OnPortalsEntered -= OnHostPortalsEntered;
-        hostTeleportable.OnPortalsExited -= OnHostPortalsExited;
+        HostBody.Teleportable.UnHookBodyPortal(this);
+        Teleportable.UnHookBodyPortal(HostBody);
 
         HostBody.ParasiteBodies.Remove(this);
 
-        OverridePortal = null;
-
         HostBody = null;
         IsPacked = false;
-    }
-
-    private void OnHostPortalsEntered(Portal inPortal, Portal outPortal)
-    {
-        OverridePortal = inPortal;
-    }
-
-    private void OnHostPortalsExited(Portal inPortal, Portal outPortal)
-    {
-        OverridePortal = null;
     }
 
     private readonly List<Collider> _ignoredColliders = new();
@@ -327,6 +309,11 @@ public class TeleportableBody : MonoBehaviour
 
     public bool IsGrabbed()
     {
+        return IsGrabbed(0);
+    }
+
+    private bool IsGrabbed(int depth)
+    {
         if (!HasHost)
         {
             return false;
@@ -335,6 +322,17 @@ public class TeleportableBody : MonoBehaviour
         if (Host.HandCount() > 0)
         {
             return true;
+        }
+
+        if (depth < 4)
+        {
+            foreach (var parasite in ParasiteBodies)
+            {
+                if (parasite.IsGrabbed(depth + 1))
+                {
+                    return true;
+                }
+            }
         }
 
         return false;
