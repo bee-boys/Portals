@@ -22,11 +22,18 @@ public class PortalsMod : MelonMod
         Logger = LoggerInstance;
 
         Hooking.OnLevelLoaded += OnLevelLoaded;
+
+        PortalPreferences.SetupPreferences();
     }
 
     public override void OnLateInitializeMelon()
     {
         IsMockHMD = XRGeneralSettings.Instance.Manager.loaders.Find((Il2CppSystem.Predicate<XRLoader>)((loader) => loader.TryCast<MockHMDLoader>() != null));
+    }
+
+    public override void OnPreferencesLoaded()
+    {
+        PortalPreferences.LoadPreferences();
     }
 
     private void OnLevelLoaded(LevelInfo info)

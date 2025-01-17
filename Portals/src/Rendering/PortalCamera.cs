@@ -4,6 +4,8 @@ using UnityEngine.XR;
 
 using Portals.MonoBehaviours;
 
+using System;
+
 namespace Portals.Rendering;
 
 public class PortalCamera
@@ -14,9 +16,26 @@ public class PortalCamera
 
     public GameObject GameObject { get; set; }
 
-    public RenderTexture TargetTexture { get; set; }
+    private RenderTexture _targetTexture = null;
+    public RenderTexture TargetTexture
+    {
+        get
+        {
+            return _targetTexture;
+        }
+        set
+        {
+            _targetTexture = value;
+
+            Camera.targetTexture = value;
+
+            OnTargetTextureChanged?.Invoke(value);
+        }
+    }
 
     public Camera.StereoscopicEye Eye { get; set; }
+
+    public event Action<RenderTexture> OnTargetTextureChanged;
 
     public PortalCamera(Portal portal, Camera.StereoscopicEye eye)
     {
@@ -39,12 +58,31 @@ public class PortalCamera
 
         var (width, height) = GetDimensions();
 
-        TargetTexture = new RenderTexture(width, height, 24);
-        Camera.targetTexture = TargetTexture;
-
         Camera.stereoTargetEye = StereoTargetEyeMask.None;
 
         Eye = eye;
+
+        PortalPreferences.OnRenderScaleChanged += OnRenderScaleChanged;
+
+        OnRenderScaleChanged(PortalPreferences.RenderScale);
+    }
+
+    public void ReleaseTexture()
+    {
+        if (TargetTexture != null)
+        {
+            TargetTexture.Release();
+            TargetTexture = null;
+        }
+    }
+
+    private void OnRenderScaleChanged(float value)
+    {
+        ReleaseTexture();
+
+        var (width, height) = GetDimensions();
+
+        TargetTexture = new RenderTexture(Mathf.RoundToInt(width * value), Mathf.RoundToInt(height * value), 24);
     }
 
     private static (int width, int height) GetDimensions()
@@ -63,9 +101,10 @@ public class PortalCamera
 
     public void Destroy()
     {
+        PortalPreferences.OnRenderScaleChanged -= OnRenderScaleChanged;
+
         GameObject.Destroy(GameObject);
 
-        TargetTexture.Release();
-        TargetTexture = null;
+        ReleaseTexture();
     }
 }

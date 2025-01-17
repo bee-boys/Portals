@@ -11,11 +11,9 @@ using System;
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 using Il2CppInterop.Runtime.Attributes;
 
-using Il2CppSLZ.Marrow.Interaction;
 using Il2CppSLZ.Marrow.Audio;
 using Il2CppSLZ.Marrow.Pool;
 
-using Portals.Patching;
 using Portals.Rendering;
 
 using UnityEngine.XR;
@@ -40,6 +38,12 @@ public class Portal : MonoBehaviour
     private PortalSurface _surface = null;
 
     private PortalExpander _expander = null;
+
+    private Matrix4x4 _cachedEnterMatrix = Matrix4x4.identity;
+    private Matrix4x4 _cachedEnterMatrixInverse = Matrix4x4.identity;
+
+    private Matrix4x4 _cachedExitMatrix = Matrix4x4.identity;
+    private Matrix4x4 _cachedExitMatrixInverse = Matrix4x4.identity;
     #endregion
 
     #region PROPERTIES
@@ -77,16 +81,16 @@ public class Portal : MonoBehaviour
     public Vector2 Size => size.Get();
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalEnterMatrix => Matrix4x4.TRS(transform.position, transform.rotation, GetFlatScale(transform.lossyScale));
+    public Matrix4x4 PortalEnterMatrix => _cachedEnterMatrix;
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalEnterMatrixInverse => PortalEnterMatrix.inverse;
+    public Matrix4x4 PortalEnterMatrixInverse => _cachedEnterMatrixInverse;
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalExitMatrix => Matrix4x4.TRS(transform.position, Quaternion.AngleAxis(180f, transform.up) * transform.rotation, GetFlatScale(transform.lossyScale));
+    public Matrix4x4 PortalExitMatrix => _cachedExitMatrix;
 
     [HideFromIl2Cpp]
-    public Matrix4x4 PortalExitMatrixInverse => PortalExitMatrix.inverse;
+    public Matrix4x4 PortalExitMatrixInverse => _cachedExitMatrixInverse;
 
     [HideFromIl2Cpp]
     public List<Collider> WallColliders { get; set; } = new();
@@ -142,17 +146,17 @@ public class Portal : MonoBehaviour
         _leftEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Left);
         _rightEyeCamera = new PortalCamera(this, Camera.StereoscopicEye.Right);
 
-        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureId, _leftEyeCamera.TargetTexture);
-        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.RightEyeTextureId, _rightEyeCamera.TargetTexture);
-
         _leftEyeNearPlane = new PortalNearPlane(Surface.AlwaysVisibleShader);
         _rightEyeNearPlane = new PortalNearPlane(Surface.AlwaysVisibleShader);
 
-        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, _leftEyeCamera.TargetTexture);
         _leftEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
-
-        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, _rightEyeCamera.TargetTexture);
         _rightEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
+
+        _leftEyeCamera.OnTargetTextureChanged += OnLeftEyeTextureChanged;
+        _rightEyeCamera.OnTargetTextureChanged += OnRightEyeTextureChanged;
+
+        OnLeftEyeTextureChanged(_leftEyeCamera.TargetTexture);
+        OnRightEyeTextureChanged(_rightEyeCamera.TargetTexture);
 
         Surface.CorridorRenderer.enabled = false;
 
@@ -160,6 +164,32 @@ public class Portal : MonoBehaviour
         RenderingHooks.BeginCameraRendering += OnBeginCameraRendering;
 
         Poolee = GetComponentInParent<Poolee>();
+    }
+
+    private void LateUpdate()
+    {
+        var position = transform.position;
+        var rotation = transform.rotation;
+        var scale = GetFlatScale(transform.lossyScale);
+
+        // Update matrices
+        _cachedEnterMatrix = Matrix4x4.TRS(position, rotation, scale);
+        _cachedEnterMatrixInverse = _cachedEnterMatrix.inverse;
+
+        _cachedExitMatrix = Matrix4x4.TRS(position, Quaternion.AngleAxis(180f, transform.up) * rotation, scale);
+        _cachedExitMatrixInverse = _cachedExitMatrix.inverse;
+    }
+
+    private void OnLeftEyeTextureChanged(RenderTexture texture)
+    {
+        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureId, texture);
+        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, texture);
+    }
+
+    private void OnRightEyeTextureChanged(RenderTexture texture)
+    {
+        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.RightEyeTextureId, texture);
+        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, texture);
     }
 
     private void OnDisable()
@@ -232,6 +262,12 @@ public class Portal : MonoBehaviour
 
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
     {
+        if (!PortalPreferences.RenderView)
+        {
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
+            return;
+        }
+
         if (!OtherPortal)
         {
             return;
@@ -257,7 +293,7 @@ public class Portal : MonoBehaviour
             return;
         }
 
-        int iterations = 1;
+        int iterations = PortalPreferences.MaxRecursion;
         int initialValue = iterations - 1;
         float openPercent = Surface.OpenPercent;
 
@@ -302,7 +338,7 @@ public class Portal : MonoBehaviour
             CopyValues(mainCamera, _leftEyeCamera.Camera);
             CopyValues(mainCamera, _rightEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetInt("_ForceEye", 1);
+            Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeId, 1);
 
             var (left, right) = GetEyes();
 
@@ -316,18 +352,18 @@ public class Portal : MonoBehaviour
             _leftEyeCamera.Transform.SetPositionAndRotation(leftEyeWorld, newRotation);
             _leftEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Left, centerSign, otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetFloat("_EyeOverride", 0f);
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideId, 0f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
 
             _rightEyeCamera.Transform.SetPositionAndRotation(rightEyeWorld, newRotation);
             _rightEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Right, centerSign, otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetFloat("_EyeOverride", 1f);
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideId, 1f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _rightEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetInt("_ForceEye", 0);
+            Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeId, 0);
 
         }
         else
