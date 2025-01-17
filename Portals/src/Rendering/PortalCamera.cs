@@ -82,7 +82,9 @@ public class PortalCamera
 
         var (width, height) = GetDimensions();
 
-        TargetTexture = new RenderTexture(Mathf.RoundToInt(width * value), Mathf.RoundToInt(height * value), 24);
+        var powerOfTwo = Mathf.ClosestPowerOfTwo(Mathf.RoundToInt(Math.Min(width * value, height * value)));
+
+        TargetTexture = new RenderTexture(powerOfTwo, powerOfTwo, 0);
     }
 
     private static (int width, int height) GetDimensions()
