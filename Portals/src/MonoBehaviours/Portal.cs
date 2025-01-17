@@ -39,6 +39,8 @@ public class Portal : MonoBehaviour
 
     private PortalExpander _expander = null;
 
+    private Vector2 _size = Vector2.zero;
+
     private Matrix4x4 _cachedEnterMatrix = Matrix4x4.identity;
     private Matrix4x4 _cachedEnterMatrixInverse = Matrix4x4.identity;
 
@@ -78,7 +80,7 @@ public class Portal : MonoBehaviour
     public PortalExpander Expander => _expander;
 
     [HideFromIl2Cpp]
-    public Vector2 Size => size.Get();
+    public Vector2 Size => _size;
 
     [HideFromIl2Cpp]
     public Matrix4x4 PortalEnterMatrix => _cachedEnterMatrix;
@@ -129,6 +131,8 @@ public class Portal : MonoBehaviour
         _surface = surface.Get().TryCast<PortalSurface>();
 
         _expander = expander.Get().TryCast<PortalExpander>();
+
+        _size = size.Get();
 
         Expander.ToggleCollision(false);
     }
