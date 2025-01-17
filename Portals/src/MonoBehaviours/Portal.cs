@@ -412,7 +412,10 @@ public class Portal : MonoBehaviour
 
         if (IsVR(camera))
         {
-            float centerSign = Math.Sign(Vector3.Dot(transform.forward, transform.position - camera.transform.position));
+            var forward = transform.forward;
+            var position = transform.position;
+
+            float centerSign = Math.Sign(Vector3.Dot(forward, position - camera.transform.position));
 
             if (centerSign <= 0f)
             {
@@ -425,8 +428,10 @@ public class Portal : MonoBehaviour
 
             var (left, right) = GetEyes();
 
-            float leftEyeSign = Math.Sign(Vector3.Dot(transform.forward, transform.position - camera.transform.localToWorldMatrix.MultiplyPoint(left)));
-            float rightEyeSign = Math.Sign(Vector3.Dot(transform.forward, transform.position - camera.transform.localToWorldMatrix.MultiplyPoint(right)));
+            var cameraMatrix = camera.transform.localToWorldMatrix;
+
+            float leftEyeSign = Math.Sign(Vector3.Dot(forward, position - cameraMatrix.MultiplyPoint3x4(left)));
+            float rightEyeSign = Math.Sign(Vector3.Dot(forward, position - cameraMatrix.MultiplyPoint3x4(right)));
 
             bool isInFront = centerSign <= 0f;
 
