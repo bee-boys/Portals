@@ -51,14 +51,13 @@ public class PortalCamera
         Camera.allowMSAA = false;
         Camera.clearFlags = CameraClearFlags.SolidColor;
         Camera.backgroundColor = Color.black;
+        Camera.stereoTargetEye = StereoTargetEyeMask.None;
 
         var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
         data.antialiasing = AntialiasingMode.None;
         data.allowXRRendering = true;
 
         var (width, height) = GetDimensions();
-
-        Camera.stereoTargetEye = StereoTargetEyeMask.None;
 
         Eye = eye;
 
