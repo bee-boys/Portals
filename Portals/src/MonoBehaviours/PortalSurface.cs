@@ -6,6 +6,7 @@ using MelonLoader;
 
 using Il2CppInterop.Runtime.InteropTypes.Fields;
 using Il2CppInterop.Runtime.Attributes;
+
 using Portals.Rendering;
 
 namespace Portals.MonoBehaviours;

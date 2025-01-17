@@ -391,6 +391,7 @@ public class Portal : MonoBehaviour
         to.nearClipPlane = from.nearClipPlane;
         to.farClipPlane = from.farClipPlane;
         to.fieldOfView = from.fieldOfView;
+        to.cullingMask = from.cullingMask;
     }
 
     private bool IsVR(Camera camera)
