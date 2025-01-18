@@ -186,13 +186,13 @@ public class Teleportable : MonoBehaviour
 
         foreach (var body in Bodies)
         {
-            if (!body.HasRigidbody)
-            {
-                continue;
-            }
-
             foreach (var parasite in body.ParasiteBodies)
             {
+                if (!parasite.HasRigidbody)
+                {
+                    continue;
+                }
+
                 parasite.Teleportable.Teleport(inPortal, outPortal);
             }
         }
