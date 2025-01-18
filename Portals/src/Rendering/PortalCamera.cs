@@ -83,7 +83,8 @@ public class PortalCamera
 
         var powerOfTwo = Mathf.ClosestPowerOfTwo(Mathf.RoundToInt(Math.Min(width * value, height * value)));
 
-        TargetTexture = new RenderTexture(powerOfTwo, powerOfTwo, 0);
+        // Make sure to keep the depth at 24, depth of 0 doesn't render properly on Quest
+        TargetTexture = new RenderTexture(powerOfTwo, powerOfTwo, 24);
     }
 
     private static (int width, int height) GetDimensions()
