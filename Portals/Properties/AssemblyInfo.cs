@@ -10,3 +10,5 @@ using System.Reflection;
 [assembly: AssemblyVersion(PortalsMod.Version)]
 [assembly: AssemblyDescription("Adds portals that can connect two areas of space.")]
 [assembly: AssemblyTitle("Portals")]
+
+[assembly: MelonOptionalDependencies("LabFusion")]

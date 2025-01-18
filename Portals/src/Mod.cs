@@ -3,8 +3,10 @@
 using MelonLoader;
 
 using Portals.Rendering;
+using Portals.Fusion;
 
 using Unity.XR.MockHMD;
+
 using UnityEngine.XR.Management;
 
 namespace Portals;
@@ -24,6 +26,16 @@ public class PortalsMod : MelonMod
         Hooking.OnLevelLoaded += OnLevelLoaded;
 
         PortalPreferences.SetupPreferences();
+
+        if (FindMelon("LabFusion", "Lakatrazz") != null)
+        {
+            LoadModule();
+        }
+    }
+
+    private static void LoadModule()
+    {
+        LabFusion.SDK.Modules.ModuleManager.RegisterModule<PortalsModule>();
     }
 
     public override void OnLateInitializeMelon()

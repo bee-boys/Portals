@@ -20,6 +20,10 @@ public class PortalGun : MonoBehaviour
 {
     public PortalGun(IntPtr intPtr) : base(intPtr) { }
 
+    public delegate bool FireCallback(PortalGun gun, bool primary, Vector2 size);
+
+    public static event FireCallback OnFireEvent;
+
     #region FIELD INJECTION
     public Il2CppValueField<Color> primaryOutsideColor;
 
@@ -106,6 +110,16 @@ public class PortalGun : MonoBehaviour
 
     public void Fire(bool primary, Vector2 size)
     {
+        if (OnFireEvent != null)
+        {
+            bool fire = OnFireEvent(this, primary, size);
+
+            if (!fire)
+            {
+                return;
+            }
+        }
+
         var direction = FirePoint.forward;
         var velocity = direction * 50f;
 

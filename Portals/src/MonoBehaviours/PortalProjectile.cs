@@ -229,7 +229,8 @@ public class PortalProjectile : MonoBehaviour
 
         Stop();
     }
-    
+
+    [HideFromIl2Cpp]
     private unsafe void TrySpawn(Vector3 position, Quaternion rotation)
     {
         var normal = rotation * Vector3.forward;
@@ -278,6 +279,7 @@ public class PortalProjectile : MonoBehaviour
         Stop();
     }
 
+    [HideFromIl2Cpp]
     private unsafe void MoveToAvailableArea(ref Vector3 position, Quaternion rotation, Vector3* points, int count)
     {
         for (var i = 0; i < count; i++)
