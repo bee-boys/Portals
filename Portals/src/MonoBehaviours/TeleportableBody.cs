@@ -199,7 +199,7 @@ public class TeleportableBody : MonoBehaviour
 
         var portal = other.GetComponentInParent<Portal>();
 
-        if (portal != null)
+        if (portal != null && ValidatePortal(portal))
         {
             TriggeredPortal = portal;
         }
@@ -218,6 +218,23 @@ public class TeleportableBody : MonoBehaviour
         {
             TriggeredPortal = null;
         }
+    }
+
+    public bool ValidatePortal(Portal portal)
+    {
+        if (portal.ParentBody == null)
+        {
+            return true;
+        }
+
+        var portalEntity = portal.ParentBody.Entity;
+
+        if (portalEntity == Teleportable.MarrowEntity)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public void CalculateTracker()
