@@ -138,10 +138,18 @@ public class TeleportableEntity : Teleportable
                 continue;
             }
 
-            var configJoint = joint._configurableJoint;
+            var defaultJointInfo = joint._defaultConfigJointInfo;
 
-            configJoint.anchor = configJoint.anchor;
-            configJoint.connectedAnchor = configJoint.connectedAnchor;
+            var configJoint = joint._configurableJoint;
+            var swapBodies = configJoint.swapBodies;
+
+            var anchor = swapBodies ? defaultJointInfo.connectedAnchor : defaultJointInfo.anchor;
+            var connectedAnchor = swapBodies ? defaultJointInfo.anchor : defaultJointInfo.connectedAnchor;
+
+            configJoint.autoConfigureConnectedAnchor = false;
+
+            configJoint.anchor = anchor;
+            configJoint.connectedAnchor = connectedAnchor;
         }
     }
 

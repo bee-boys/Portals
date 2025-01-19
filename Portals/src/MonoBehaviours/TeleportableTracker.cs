@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Il2CppInterop.Runtime.Attributes;
-using Il2CppSLZ.Marrow.Interaction;
 
 using MelonLoader;
 
