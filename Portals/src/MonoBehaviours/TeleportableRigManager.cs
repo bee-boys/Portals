@@ -216,13 +216,19 @@ public class TeleportableRigManager : Teleportable
             });
         }
 
-        foreach (var rig in RigManager.remapRigs)
-        {
-            pendingTransforms.Add(CreatePendingTransform(rig.transform, inPortalMatrix, outPortalMatrix));
-        }
+        // Rotating the rigs while in a seat can cause issues
+        bool seated = RigManager.activeSeat;
 
-        pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.transform, inPortalMatrix, outPortalMatrix));
-        pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.vrRoot, inPortalMatrix, outPortalMatrix));
+        if (!seated)
+        {
+            foreach (var rig in RigManager.remapRigs)
+            {
+                pendingTransforms.Add(CreatePendingTransform(rig.transform, inPortalMatrix, outPortalMatrix));
+            }
+
+            pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.transform, inPortalMatrix, outPortalMatrix));
+            pendingTransforms.Add(CreatePendingTransform(OpenControllerRig.vrRoot, inPortalMatrix, outPortalMatrix));
+        }
 
         var anchor = PhysicsRig.centerOfPressure;
 
