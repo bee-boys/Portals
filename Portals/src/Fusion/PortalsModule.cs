@@ -1,4 +1,5 @@
-﻿using LabFusion.Entities;
+﻿using Il2CppSLZ.Marrow;
+using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
 using LabFusion.SDK.Modules;
@@ -31,6 +32,7 @@ public class PortalsModule : Module
         ModuleMessageHandler.RegisterHandler<PortalGunFireMessage>();
 
         PortalGun.OnFireEvent += OnPortalGunFired;
+        TeleportableRigManager.OnScaleEvent += OnRigManagerScaled;
     }
 
     protected override void OnModuleUnregistered()
@@ -38,6 +40,7 @@ public class PortalsModule : Module
         base.OnModuleUnregistered();
 
         PortalGun.OnFireEvent -= OnPortalGunFired;
+        TeleportableRigManager.OnScaleEvent -= OnRigManagerScaled;
     }
 
     private bool OnPortalGunFired(PortalGun gun, bool primary, Vector2 size)
@@ -70,6 +73,37 @@ public class PortalsModule : Module
 
             MessageSender.SendToServer(NetworkChannel.Reliable, message);
 
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+    private bool OnRigManagerScaled(TeleportableRigManager teleportable, float scale)
+    {
+        if (IgnoreOverrides)
+        {
+            return true;
+        }
+
+        if (!NetworkInfo.HasServer)
+        {
+            return true;
+        }
+
+        var networkEntity = IMarrowEntityExtender.Cache.Get(teleportable.MarrowEntity);
+
+        if (networkEntity == null)
+        {
+            return true;
+        }
+
+        // Only scale if we own this RigManager
+        if (networkEntity.IsOwner)
+        {
             return true;
         }
         else

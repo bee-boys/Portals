@@ -30,6 +30,10 @@ public class TeleportableRigManager : Teleportable
 
     public TeleportableRigManager(IntPtr intPtr) : base(intPtr) { }
 
+    public delegate bool ScaleCallback(TeleportableRigManager teleportable, float scale);
+
+    public static event ScaleCallback OnScaleEvent;
+
     public RigManager RigManager => _rigManager;
 
     private RigManager _rigManager = null;
@@ -318,6 +322,17 @@ public class TeleportableRigManager : Teleportable
 
     private void ScalePlayer(float factor)
     {
+        if (OnScaleEvent != null)
+        {
+            var shouldScale = OnScaleEvent(this, factor);
+
+            if (!shouldScale)
+            {
+                ScaleSlots(factor);
+                return;
+            }
+        }
+
         var newScale = RigManager.avatar.transform.localScale * factor;
 
         var crate = RigManager.AvatarCrate.Crate;
