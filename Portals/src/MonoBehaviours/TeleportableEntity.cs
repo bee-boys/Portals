@@ -146,8 +146,6 @@ public class TeleportableEntity : Teleportable
             var anchor = swapBodies ? defaultJointInfo.connectedAnchor : defaultJointInfo.anchor;
             var connectedAnchor = swapBodies ? defaultJointInfo.anchor : defaultJointInfo.connectedAnchor;
 
-            configJoint.autoConfigureConnectedAnchor = false;
-
             configJoint.anchor = anchor;
             configJoint.connectedAnchor = connectedAnchor;
         }
