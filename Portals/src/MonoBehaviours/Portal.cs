@@ -13,6 +13,7 @@ using Il2CppInterop.Runtime.Attributes;
 
 using Il2CppSLZ.Marrow.Audio;
 using Il2CppSLZ.Marrow.Pool;
+using Il2CppSLZ.Marrow.Interaction;
 
 using Portals.Rendering;
 
@@ -95,10 +96,10 @@ public class Portal : MonoBehaviour
     public Matrix4x4 PortalExitMatrixInverse => _cachedExitMatrixInverse;
 
     [HideFromIl2Cpp]
-    public Vector3 Velocity => Vector3.zero;
+    public Vector3 Velocity => ParentBody && ParentBody.HasRigidbody ? ParentBody._rigidbody.velocity : Vector3.zero;
 
     [HideFromIl2Cpp]
-    public Vector3 AngularVelocity => Vector3.zero;
+    public Vector3 AngularVelocity => ParentBody && ParentBody.HasRigidbody ? ParentBody._rigidbody.angularVelocity : Vector3.zero;
 
     [HideFromIl2Cpp]
     public List<Collider> WallColliders { get; set; } = new();
@@ -111,6 +112,9 @@ public class Portal : MonoBehaviour
 
     [HideFromIl2Cpp]
     public Poolee Poolee { get; set; } = null;
+
+    [HideFromIl2Cpp]
+    public MarrowBody ParentBody { get; set; } = null;
 
     [HideFromIl2Cpp]
     public int? ID { get; set; } = null;
