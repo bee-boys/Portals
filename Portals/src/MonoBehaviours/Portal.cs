@@ -96,7 +96,7 @@ public class Portal : MonoBehaviour
     public Matrix4x4 PortalExitMatrixInverse => _cachedExitMatrixInverse;
 
     [HideFromIl2Cpp]
-    public Vector3 Velocity => ParentBody && ParentBody.HasRigidbody ? ParentBody._rigidbody.velocity : Vector3.zero;
+    public Vector3 Velocity => ParentBody && ParentBody.HasRigidbody ? ParentBody._rigidbody.GetPointVelocity(transform.position) : Vector3.zero;
 
     [HideFromIl2Cpp]
     public Vector3 AngularVelocity => ParentBody && ParentBody.HasRigidbody ? ParentBody._rigidbody.angularVelocity : Vector3.zero;
