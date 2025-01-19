@@ -146,6 +146,15 @@ public class TeleportableEntity : Teleportable
             var anchor = swapBodies ? defaultJointInfo.connectedAnchor : defaultJointInfo.anchor;
             var connectedAnchor = swapBodies ? defaultJointInfo.anchor : defaultJointInfo.connectedAnchor;
 
+            // Don't change it unless necessary, as it will change the joint space
+            // Thankfully when it has to change MarrowJoint has a method for writing the original
+            if (configJoint.autoConfigureConnectedAnchor)
+            {
+                configJoint.autoConfigureConnectedAnchor = false;
+
+                joint.WriteJointSpace();
+            }
+
             configJoint.anchor = anchor;
             configJoint.connectedAnchor = connectedAnchor;
         }
