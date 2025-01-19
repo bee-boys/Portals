@@ -6,7 +6,8 @@ namespace Portals;
 
 public static class PortalConstants
 {
-    public static readonly Vector2 DefaultSize = new(1f, 2f);
+    // Portals are 64x128 hammer units which is about 1.22x2.44 meters
+    public static readonly Vector2 DefaultSize = new(1.22f, 2.44f);
 
     private static LayerMask _hitMask = default;
     private static bool _hasHitMask = false;
