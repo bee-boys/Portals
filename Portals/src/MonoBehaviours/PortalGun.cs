@@ -155,27 +155,9 @@ public class PortalGun : MonoBehaviour
 
         void OnPortalSpawned(Portal portal)
         {
-            portal.WallColliders.Clear();
+            portal.CollectWallColliders();
 
             var portalPosition = portal.transform.position;
-            var portalRotation = portal.transform.rotation;
-
-            var overlapBox = Physics.OverlapBox(portalPosition, new Vector3(size.x * 0.5f, size.y * 0.5f, 2f), portalRotation, PortalConstants.HitMask, QueryTriggerInteraction.Ignore);
-
-            foreach (var hit in overlapBox)
-            {
-                if (hit.attachedRigidbody)
-                {
-                    continue;
-                }
-
-                if (hit.GetComponentInParent<Portal>())
-                {
-                    continue;
-                }
-
-                portal.WallColliders.Add(hit);
-            }
 
             portal.Surface.SetOutline(outsideColor);
             portal.Surface.SetInside(insideColor);

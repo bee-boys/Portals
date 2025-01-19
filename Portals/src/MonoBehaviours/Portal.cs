@@ -180,6 +180,48 @@ public class Portal : MonoBehaviour
         Poolee = GetComponentInParent<Poolee>();
     }
 
+    public void CollectWallColliders()
+    {
+        WallColliders.Clear();
+
+        // If this portal is attached to a rigidbody, then just use the rigidbody's colliders
+        if (ParentBody != null)
+        {
+            foreach (var collider in ParentBody.Colliders)
+            {
+                if (collider != null)
+                {
+                    WallColliders.Add(collider);
+                }
+            }
+
+            return;
+        }
+
+        var portalPosition = transform.position;
+        var portalRotation = transform.rotation;
+        var portalScale = transform.lossyScale;
+
+        var size = new Vector2(Size.x * portalScale.x, Size.y * portalScale.y);
+
+        var overlapBox = Physics.OverlapBox(portalPosition, new Vector3(size.x * 0.5f, size.y * 0.5f, 2f), portalRotation, PortalConstants.HitMask, QueryTriggerInteraction.Ignore);
+
+        foreach (var hit in overlapBox)
+        {
+            if (hit.attachedRigidbody)
+            {
+                continue;
+            }
+
+            if (hit.GetComponentInParent<Portal>())
+            {
+                continue;
+            }
+
+            WallColliders.Add(hit);
+        }
+    }
+
     private void LateUpdate()
     {
         var position = transform.position;
