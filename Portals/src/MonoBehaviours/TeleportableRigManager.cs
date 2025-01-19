@@ -45,13 +45,14 @@ public class TeleportableRigManager : Teleportable
     private OpenControllerRig _openControllerRig = null;
 
     public Transform Headset => _headset;
-
     private Transform _headset = null;
-
-    private InventorySlotReceiver[] _slots = null;
 
     [HideFromIl2Cpp]
     public InventorySlotReceiver[] Slots => _slots;
+    private InventorySlotReceiver[] _slots = null;
+
+    public WindBuffetSFX WindBuffetSFX => _windBuffetSfx;
+    private WindBuffetSFX _windBuffetSfx = null;
 
     private Il2CppSystem.Action _onPostLateUpdate = null;
 
@@ -65,6 +66,8 @@ public class TeleportableRigManager : Teleportable
 
         _openControllerRig = _rigManager.controllerRig.TryCast<OpenControllerRig>();
         _headset = _openControllerRig.headset;
+
+        _windBuffetSfx = _headset.GetComponentInChildren<WindBuffetSFX>();
 
         _slots = GetComponentsInChildren<InventorySlotReceiver>();
 
@@ -282,6 +285,12 @@ public class TeleportableRigManager : Teleportable
         {
             ToggleBallLoco(false);
             _correctBallLoco = true;
+        }
+
+        // Prevent wind sounds caused by teleporting
+        if (WindBuffetSFX != null)
+        {
+            WindBuffetSFX._lastPosition = WindBuffetSFX.transform.position;
         }
 
         // Scale the player's avatar
