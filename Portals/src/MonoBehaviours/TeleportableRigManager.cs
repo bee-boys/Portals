@@ -266,8 +266,8 @@ public class TeleportableRigManager : Teleportable
 
             var rigidbody = body._rigidbody;
 
-            rigidbody.velocity = outPortalMatrix.MultiplyVector(inPortalMatrix.inverse.MultiplyVector(rigidbody.velocity));
-            rigidbody.angularVelocity = outPortalMatrix.rotation * (inPortalMatrix.inverse.rotation * rigidbody.angularVelocity);
+            rigidbody.velocity = outPortalMatrix.MultiplyVector(inPortalMatrix.inverse.MultiplyVector(rigidbody.velocity - inPortal.Velocity)) + outPortal.Velocity;
+            rigidbody.angularVelocity = outPortalMatrix.rotation * (inPortalMatrix.inverse.rotation * (rigidbody.angularVelocity - inPortal.AngularVelocity)) + outPortal.AngularVelocity;
         }
 
         var remapRig = RigManager.remapHeptaRig;

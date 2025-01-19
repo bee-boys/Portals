@@ -95,6 +95,12 @@ public class Portal : MonoBehaviour
     public Matrix4x4 PortalExitMatrixInverse => _cachedExitMatrixInverse;
 
     [HideFromIl2Cpp]
+    public Vector3 Velocity => Vector3.zero;
+
+    [HideFromIl2Cpp]
+    public Vector3 AngularVelocity => Vector3.zero;
+
+    [HideFromIl2Cpp]
     public List<Collider> WallColliders { get; set; } = new();
 
     [HideFromIl2Cpp]

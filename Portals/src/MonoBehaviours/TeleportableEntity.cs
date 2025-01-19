@@ -75,8 +75,8 @@ public class TeleportableEntity : Teleportable
             rigidbody.mass *= scaleFactor;
             rigidbody.inertiaTensor *= scaleFactor;
 
-            rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity));
-            rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * rigidbody.angularVelocity);
+            rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity - inPortal.Velocity)) + outPortal.Velocity;
+            rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * (rigidbody.angularVelocity - inPortal.AngularVelocity)) + outPortal.AngularVelocity;
         }
 
         UpdateThrowing(inMatrixInverse, outMatrix);
