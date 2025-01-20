@@ -64,10 +64,11 @@ public class TeleportableEntity : Teleportable
 
         foreach (var body in MarrowEntity.Bodies)
         {
+            body._cachedRigidbodyInfo.mass *= scaleFactor;
+            body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
+
             if (!body.HasRigidbody)
             {
-                body._cachedRigidbodyInfo.mass *= scaleFactor;
-                body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
                 continue;
             }
 
@@ -98,10 +99,11 @@ public class TeleportableEntity : Teleportable
 
         foreach (var body in MarrowEntity.Bodies)
         {
+            body._cachedRigidbodyInfo.mass *= massFactor;
+            body._cachedRigidbodyInfo.inertiaTensor *= massFactor;
+
             if (!body.HasRigidbody)
             {
-                body._cachedRigidbodyInfo.mass *= massFactor;
-                body._cachedRigidbodyInfo.inertiaTensor *= massFactor;
                 continue;
             }
 
