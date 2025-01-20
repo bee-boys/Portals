@@ -5,7 +5,6 @@ using UnityEngine;
 using MelonLoader;
 
 using Il2CppSLZ.Marrow.Interaction;
-using Il2CppSLZ.Marrow.PuppetMasta;
 
 namespace Portals.MonoBehaviours;
 
