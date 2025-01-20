@@ -121,7 +121,7 @@ public class PortalGun : MonoBehaviour
         }
 
         var direction = FirePoint.forward;
-        var velocity = direction * 500f;
+        var velocity = direction * 50f;
 
         if (MarrowBody && MarrowBody.HasRigidbody)
         {

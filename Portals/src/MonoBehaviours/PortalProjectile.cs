@@ -18,6 +18,8 @@ public class PortalProjectile : MonoBehaviour
 {
     public PortalProjectile(IntPtr intPtr) : base(intPtr) { }
 
+    public const float Acceleration = 5000f;
+
     public delegate bool ProjectileValidityCallback(PortalProjectile projectile);
 
     public delegate void ProjectileHitCallback(PortalGun origin, PortalSpawner.PortalSpawnInfo spawnInfo);
@@ -160,8 +162,14 @@ public class PortalProjectile : MonoBehaviour
             return;
         }
 
+        var velocity = _projectileData.Velocity;
+
+        velocity += _projectileData.Direction * Acceleration * deltaTime;
+
+        _projectileData.Velocity = velocity;
+
         var startPosition = transform.position;
-        var endPosition = startPosition + _projectileData.Velocity * deltaTime;
+        var endPosition = startPosition + velocity * deltaTime;
 
         transform.position = endPosition;
 
