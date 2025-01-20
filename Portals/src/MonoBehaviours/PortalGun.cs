@@ -128,32 +128,21 @@ public class PortalGun : MonoBehaviour
             velocity += MarrowBody._rigidbody.velocity;
         }
 
-        var spawnInfo = new PortalSpawner.PortalSpawnInfo()
-        {
-            Size = size,
-            Shape = PortalShape,
-
-            Primary = primary,
-            ID = PortalId,
-
-            SpawnCallback = OnPortalSpawned,
-        };
-
         PortalEffectSpawner.ShootProjectile(new PortalProjectile.ProjectileData()
         {
-            SpawnInfo = spawnInfo,
             Color = primary ? PrimaryInsideColor : SecondaryInsideColor,
             Velocity = velocity,
             Direction = direction,
             MaxTime = 3f,
             Position = FirePoint.position,
             InvalidSounds = InvalidSounds,
-        });
 
-        void OnPortalSpawned(Portal portal)
-        {
-            RegisterPortal(portal, primary);
-        }
+            Size = size,
+            Shape = PortalShape,
+            Primary = primary,
+            ID = PortalId,
+            Origin = this,
+        });
     }
     
     public void RegisterPortal(Portal portal, bool primary)

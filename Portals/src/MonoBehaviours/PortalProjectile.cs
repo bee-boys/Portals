@@ -18,6 +18,14 @@ public class PortalProjectile : MonoBehaviour
 {
     public PortalProjectile(IntPtr intPtr) : base(intPtr) { }
 
+    public delegate bool ProjectileValidityCallback(PortalProjectile projectile);
+
+    public delegate void ProjectileHitCallback(PortalGun origin, PortalSpawner.PortalSpawnInfo spawnInfo);
+
+    public static event ProjectileValidityCallback OnCheckHit;
+
+    public static event ProjectileHitCallback OnProjectileHit;
+
     public struct ProjectileData
     {
         public Vector3 Position { get; set; }
@@ -28,12 +36,24 @@ public class PortalProjectile : MonoBehaviour
 
         public Color Color { get; set; }
 
-        public PortalSpawner.PortalSpawnInfo SpawnInfo { get; set; }
-
         public float MaxTime { get; set; }
 
         public AudioClip[] InvalidSounds { get; set; }
+
+        // Portal gun information
+        public Vector2 Size { get; set; }
+
+        public PortalShape Shape { get; set; }
+
+
+        public bool Primary { get; set; }
+        public int? ID { get; set; }
+
+        public PortalGun Origin { get; set; }
     }
+
+    [HideFromIl2Cpp]
+    public ProjectileData Data => _projectileData;
 
     private ProjectileData _projectileData = default;
     private Poolee _poolee = null;
@@ -211,7 +231,6 @@ public class PortalProjectile : MonoBehaviour
         }
 
         TrySpawn(position, rotation);
-        return;
     }
 
     private void OnInvalidHit(Vector3 position, Quaternion rotation)
@@ -235,9 +254,7 @@ public class PortalProjectile : MonoBehaviour
     {
         var normal = rotation * Vector3.forward;
 
-        var spawnInfo = _projectileData.SpawnInfo;
-
-        var extents = spawnInfo.Size * 0.5f;
+        var extents = _projectileData.Size * 0.5f;
         var offsetExtents = new Vector3(extents.x, extents.y, 0.01f);
 
         var points = stackalloc Vector3[9]
@@ -272,11 +289,47 @@ public class PortalProjectile : MonoBehaviour
 
         transform.SetPositionAndRotation(position, rotation);
 
-        spawnInfo.Position = position;
-        spawnInfo.Rotation = rotation;
+        // Check for validity
+        if (OnCheckHit != null)
+        {
+            var valid = OnCheckHit(this);
+
+            if (!valid)
+            {
+                OnInvalidHit(position, rotation);
+                return;
+            }
+        }
+
+        var origin = _projectileData.Origin;
+        var primary = _projectileData.Primary;
+
+        var spawnInfo = new PortalSpawner.PortalSpawnInfo
+        {
+            Position = position,
+            Rotation = rotation,
+
+            Size = _projectileData.Size,
+            Shape = _projectileData.Shape,
+
+            Primary = _projectileData.Primary,
+            ID = _projectileData.ID,
+
+            SpawnCallback = OnPortalSpawned,
+        };
 
         PortalSpawner.Spawn(spawnInfo);
         Stop();
+
+        OnProjectileHit?.Invoke(origin, spawnInfo);
+
+        void OnPortalSpawned(Portal portal)
+        {
+            if (origin != null)
+            {
+                origin.RegisterPortal(portal, primary);
+            }
+        }
     }
 
     [HideFromIl2Cpp]
@@ -430,7 +483,7 @@ public class PortalProjectile : MonoBehaviour
             }
 
             // We can replace a portal of the same type/id, but not other portals
-            if (foundPortal.ID.Value != _projectileData.SpawnInfo.ID || foundPortal.Primary != _projectileData.SpawnInfo.Primary)
+            if (foundPortal.ID.Value != _projectileData.ID || foundPortal.Primary != _projectileData.Primary)
             {
                 return true;
             }

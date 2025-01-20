@@ -4,6 +4,7 @@ using LabFusion.Player;
 using LabFusion.SDK.Modules;
 
 using Portals.MonoBehaviours;
+using Portals.Pooling;
 
 using System;
 
@@ -29,9 +30,13 @@ public class PortalsModule : Module
 
         EntityComponentManager.RegisterComponent<PortalGunExtender>();
         ModuleMessageHandler.RegisterHandler<PortalGunFireMessage>();
+        ModuleMessageHandler.RegisterHandler<PortalSpawnMessage>();
 
         PortalGun.OnFireEvent += OnPortalGunFired;
         TeleportableRigManager.OnScaleEvent += OnRigManagerScaled;
+
+        PortalProjectile.OnCheckHit += OnCheckProjectileHit;
+        PortalProjectile.OnProjectileHit += OnProjectileHit;
     }
 
     protected override void OnModuleUnregistered()
@@ -40,6 +45,72 @@ public class PortalsModule : Module
 
         PortalGun.OnFireEvent -= OnPortalGunFired;
         TeleportableRigManager.OnScaleEvent -= OnRigManagerScaled;
+
+        PortalProjectile.OnCheckHit -= OnCheckProjectileHit;
+        PortalProjectile.OnProjectileHit -= OnProjectileHit;
+    }
+
+
+    private void OnProjectileHit(PortalGun origin, PortalSpawner.PortalSpawnInfo spawnInfo)
+    {
+        if (!NetworkInfo.HasServer)
+        {
+            return;
+        }
+
+        if (origin == null)
+        {
+            return;
+        }
+
+        var networkEntity = PortalGunExtender.Cache.Get(origin);
+
+        if (networkEntity == null)
+        {
+            return;
+        }
+
+        if (!networkEntity.IsOwner)
+        {
+            return;
+        }
+
+        var writer = FusionWriter.Create();
+        var data = PortalSpawnData.Create(PlayerIdManager.LocalSmallId, networkEntity.Id, spawnInfo);
+
+        writer.Write(data);
+
+        var message = FusionMessage.ModuleCreate<PortalSpawnMessage>(writer);
+
+        MessageSender.SendToServer(NetworkChannel.Reliable, message);
+    }
+
+    private bool OnCheckProjectileHit(PortalProjectile projectile)
+    {
+        if (!NetworkInfo.HasServer)
+        {
+            return true;
+        }
+
+        if (projectile.Data.Origin == null)
+        {
+            return true;
+        }
+
+        // Only let the owner of the gun spawn portals
+        var networkEntity = PortalGunExtender.Cache.Get(projectile.Data.Origin);
+
+        if (networkEntity == null)
+        {
+            return true;
+        }
+
+        if (!networkEntity.IsOwner)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private bool OnPortalGunFired(PortalGun gun, bool primary, Vector2 size)
