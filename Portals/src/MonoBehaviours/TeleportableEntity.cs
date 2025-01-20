@@ -66,6 +66,8 @@ public class TeleportableEntity : Teleportable
         {
             if (!body.HasRigidbody)
             {
+                body._cachedRigidbodyInfo.mass *= scaleFactor;
+                body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
                 continue;
             }
 
