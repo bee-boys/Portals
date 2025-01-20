@@ -123,9 +123,6 @@ public class PortalGun : MonoBehaviour
         var direction = FirePoint.forward;
         var velocity = direction * 50f;
 
-        var outsideColor = primary ? PrimaryOutsideColor : SecondaryOutsideColor;
-        var insideColor = primary ? PrimaryInsideColor : SecondaryInsideColor;
-
         if (MarrowBody && MarrowBody.HasRigidbody)
         {
             velocity += MarrowBody._rigidbody.velocity;
@@ -145,7 +142,7 @@ public class PortalGun : MonoBehaviour
         PortalEffectSpawner.ShootProjectile(new PortalProjectile.ProjectileData()
         {
             SpawnInfo = spawnInfo,
-            Color = insideColor,
+            Color = primary ? PrimaryInsideColor : SecondaryInsideColor,
             Velocity = velocity,
             Direction = direction,
             MaxTime = 3f,
@@ -155,23 +152,31 @@ public class PortalGun : MonoBehaviour
 
         void OnPortalSpawned(Portal portal)
         {
-            portal.CollectWallColliders();
+            RegisterPortal(portal, primary);
+        }
+    }
+    
+    public void RegisterPortal(Portal portal, bool primary)
+    {
+        var outsideColor = primary ? PrimaryOutsideColor : SecondaryOutsideColor;
+        var insideColor = primary ? PrimaryInsideColor : SecondaryInsideColor;
 
-            var portalPosition = portal.transform.position;
+        portal.CollectWallColliders();
 
-            portal.Surface.SetOutline(outsideColor);
-            portal.Surface.SetInside(insideColor);
+        var portalPosition = portal.transform.position;
 
-            portal.Expander.Expand();
+        portal.Surface.SetOutline(outsideColor);
+        portal.Surface.SetInside(insideColor);
 
-            portal.FizzleSounds = FizzleSounds;
+        portal.Expander.Expand();
 
-            var openSounds = primary ? PrimaryOpenSounds : SecondaryOpenSounds;
+        portal.FizzleSounds = FizzleSounds;
 
-            if (openSounds != null)
-            {
-                Audio3dManager.PlayAtPoint(openSounds, portalPosition, Audio3dManager.hardInteraction, 0.4f, 1f, new(0f), new(0.4f), new(1f));
-            }
+        var openSounds = primary ? PrimaryOpenSounds : SecondaryOpenSounds;
+
+        if (openSounds != null)
+        {
+            Audio3dManager.PlayAtPoint(openSounds, portalPosition, Audio3dManager.hardInteraction, 0.4f, 1f, new(0f), new(0.4f), new(1f));
         }
     }
     #endregion
