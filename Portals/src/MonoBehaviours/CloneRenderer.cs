@@ -60,17 +60,25 @@ public class CloneRenderer : MonoBehaviour
         var meshFilter = original.GetComponent<MeshFilter>();
         var meshRenderer = original.GetComponent<MeshRenderer>();
 
-        if (meshFilter && meshRenderer)
+        try
         {
-            CopyMeshRenderer(clone, meshRenderer, meshFilter);
+            if (meshFilter && meshRenderer)
+            {
+                CopyMeshRenderer(clone, meshRenderer, meshFilter);
+            }
         }
+        catch { }
 
         var skinnedMeshRenderer = original.GetComponent<SkinnedMeshRenderer>();
 
-        if (skinnedMeshRenderer)
+        try
         {
-            CopySkinnedMeshRenderer(clone, skinnedMeshRenderer);
+            if (skinnedMeshRenderer)
+            {
+                CopySkinnedMeshRenderer(clone, skinnedMeshRenderer);
+            }
         }
+        catch { }
 
         for (var i = 0; i < clone.childCount; i++)
         {
