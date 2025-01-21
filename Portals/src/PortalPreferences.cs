@@ -1,7 +1,10 @@
-﻿using BoneLib.BoneMenu;
+﻿using BoneLib;
+using BoneLib.BoneMenu;
 
 using MelonLoader;
+
 using System;
+
 using UnityEngine;
 
 namespace Portals;
@@ -68,15 +71,28 @@ public static class PortalPreferences
 
     public static void SetupPreferences()
     {
+        var defaultRenderView = true;
+        var defaultRenderScale = 1f;
+
+        var defaultLimitDistance = true;
+        var defaultRenderDistance = 25;
+
+        var defaultMaxRecursion = 1;
+
+        if (HelperMethods.IsAndroid())
+        {
+            defaultRenderDistance = 10;
+        }
+
         _preferencesCategory = MelonPreferences.CreateCategory("Portals");
 
-        _renderViewPreference = _preferencesCategory.CreateEntry("Render View", true);
-        _renderScalePreference = _preferencesCategory.CreateEntry("Render Scale", 1f);
+        _renderViewPreference = _preferencesCategory.CreateEntry("Render View", defaultRenderView);
+        _renderScalePreference = _preferencesCategory.CreateEntry("Render Scale", defaultRenderScale);
 
-        _limitDistancePreference = _preferencesCategory.CreateEntry("Limit Distance", true);
-        _renderDistancePreference = _preferencesCategory.CreateEntry("Render Distance", 25);
+        _limitDistancePreference = _preferencesCategory.CreateEntry("Limit Distance", defaultLimitDistance);
+        _renderDistancePreference = _preferencesCategory.CreateEntry("Render Distance", defaultRenderDistance);
 
-        _maxRecursionPreference = _preferencesCategory.CreateEntry("Max Recursion", 1);
+        _maxRecursionPreference = _preferencesCategory.CreateEntry("Max Recursion", defaultMaxRecursion);
 
         _preferencesSetup = true;
 
