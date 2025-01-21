@@ -221,7 +221,12 @@ public class Teleportable : MonoBehaviour
 
         var grabbingTeleportable = GetGrabbingTeleportable();
 
-        if (grabbingTeleportable)
+        // One sided portals should only ever check from positive Z direction for stability reasons
+        if (inPortal.OneSided)
+        {
+            _initialSign = 1f;
+        }
+        else if (grabbingTeleportable)
         {
             _initialSign = GetPortalSign(inPortal, grabbingTeleportable.GetAnchor());
         }

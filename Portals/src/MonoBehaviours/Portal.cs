@@ -121,6 +121,9 @@ public class Portal : MonoBehaviour
 
     [HideFromIl2Cpp]
     public bool Primary { get; set; } = false;
+
+    [HideFromIl2Cpp]
+    public bool OneSided { get; set; } = true;
     #endregion
 
     private PortalCamera _leftEyeCamera = null;
@@ -313,7 +316,7 @@ public class Portal : MonoBehaviour
         Surface.CorridorRenderer.enabled = false;
 
         Surface.FrontRenderer.enabled = true;
-        Surface.BackRenderer.enabled = true;
+        Surface.BackRenderer.enabled = !OneSided;
     }
 
     private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)

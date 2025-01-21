@@ -25,6 +25,7 @@ public static class PortalSpawner
 
         public bool Primary { get; set; } = true;
         public int? ID { get; set; } = null;
+        public bool OneSided { get; set; } = true;
 
         public Action<Portal> SpawnCallback { get; set; } = null;
     }
@@ -113,6 +114,7 @@ public static class PortalSpawner
             var portal = result.GetComponentInChildren<Portal>();
 
             portal.Primary = info.Primary;
+            portal.OneSided = info.OneSided;
 
             if (info.ID.HasValue)
             {
