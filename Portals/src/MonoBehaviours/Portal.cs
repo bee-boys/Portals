@@ -349,9 +349,31 @@ public class Portal : MonoBehaviour
             return;
         }
 
+        // Check for render distance
+        float openMultiplier = 1f;
+
+        if (PortalPreferences.LimitDistance)
+        {
+            var scale = transform.lossyScale;
+            var size = new Vector2(scale.x * Size.x, scale.y * Size.y);
+
+            var radius = Math.Max(size.x, size.y);
+
+            var distance = (cam.transform.position - transform.position).magnitude;
+
+            openMultiplier = 1f - Math.Clamp(Math.Max(0f, distance - radius) / Math.Max(radius, PortalPreferences.RenderDistance - radius), 0f, 1f);
+
+            // If the portal isn't open, don't bother rendering
+            if (openMultiplier <= 0f)
+            {
+                Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
+                return;
+            }
+        }
+
         int iterations = PortalPreferences.MaxRecursion;
         int initialValue = iterations - 1;
-        float openPercent = Surface.OpenPercent;
+        float openPercent = openMultiplier * Surface.OpenPercent;
 
         for (var i = initialValue; i >= 0; i--)
         {
