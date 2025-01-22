@@ -241,7 +241,7 @@ public class TeleportableBody : MonoBehaviour
     {
         bool nullColliders = MarrowBody.Colliders.Any((c) => c == null);
 
-        if (!nullColliders)
+        if (!nullColliders && MarrowBody.HasRigidbody)
         {
             MarrowBody.CalculateBounds();
         }
