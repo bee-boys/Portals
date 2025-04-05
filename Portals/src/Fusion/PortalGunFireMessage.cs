@@ -1,14 +1,16 @@
-﻿using LabFusion.Data;
-using LabFusion.Entities;
+﻿using LabFusion.Entities;
 using LabFusion.Network;
+using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 
 using UnityEngine;
 
 namespace Portals.Fusion;
 
-public class PortalGunFireData : IFusionSerializable
+public class PortalGunFireData : INetSerializable
 {
+    public const int Size = sizeof(byte) + sizeof(ushort) + sizeof(bool) + sizeof(float) * 2;
+
     public byte playerId;
 
     public ushort entityId;
@@ -17,47 +19,22 @@ public class PortalGunFireData : IFusionSerializable
 
     public Vector2 size;
 
-    public static PortalGunFireData Create(byte playerId, ushort entityId, bool primary, Vector2 size)
-    {
-        return new PortalGunFireData()
-        {
-            playerId = playerId,
-            entityId = entityId,
-            primary = primary,
-            size = size,
-        };
-    }
+    public int? GetSize() => Size;
 
-    public void Serialize(FusionWriter writer)
+    public void Serialize(INetSerializer serializer)
     {
-        writer.Write(playerId);
-        writer.Write(entityId);
-        writer.Write(primary);
-        writer.Write(size);
-    }
-
-    public void Deserialize(FusionReader reader)
-    {
-        playerId = reader.ReadByte();
-        entityId = reader.ReadUInt16();
-        primary = reader.ReadBoolean();
-        size = reader.ReadVector2();
+        serializer.SerializeValue(ref playerId);
+        serializer.SerializeValue(ref entityId);
+        serializer.SerializeValue(ref primary);
+        serializer.SerializeValue(ref size);
     }
 }
 
 public class PortalGunFireMessage : ModuleMessageHandler
 {
-    public override void HandleMessage(byte[] bytes, bool isServerHandled = false)
+    protected override void OnHandleMessage(ReceivedMessage received)
     {
-        using var reader = FusionReader.Create(bytes);
-
-        var data = reader.ReadFusionSerializable<PortalGunFireData>();
-
-        if (isServerHandled)
-        {
-            MessageSender.BroadcastMessageExcept(data.playerId, NetworkChannel.Reliable, FusionMessage.ModuleCreate<PortalGunFireMessage>(bytes), false);
-            return;
-        }
+        var data = received.ReadData<PortalGunFireData>();
 
         var networkEntity = NetworkEntityManager.IdManager.RegisteredEntities.GetEntity(data.entityId);
 

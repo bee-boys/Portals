@@ -75,14 +75,9 @@ public class PortalsModule : Module
             return;
         }
 
-        var writer = FusionWriter.Create();
         var data = PortalSpawnData.Create(PlayerIdManager.LocalSmallId, networkEntity.Id, spawnInfo);
 
-        writer.Write(data);
-
-        var message = FusionMessage.ModuleCreate<PortalSpawnMessage>(writer);
-
-        MessageSender.SendToServer(NetworkChannel.Reliable, message);
+        MessageRelay.RelayModule<PortalSpawnMessage, PortalSpawnData>(data, NetworkChannel.Reliable, RelayType.ToOtherClients);
     }
 
     private bool OnCheckProjectileHit(PortalProjectile projectile)
@@ -134,14 +129,15 @@ public class PortalsModule : Module
 
         if (networkEntity.IsOwner)
         {
-            var writer = FusionWriter.Create();
-            var data = PortalGunFireData.Create(PlayerIdManager.LocalSmallId, networkEntity.Id, primary, size);
+            var data = new PortalGunFireData()
+            {
+                playerId = PlayerIdManager.LocalSmallId,
+                entityId = networkEntity.Id,
+                primary = primary,
+                size = size
+            };
 
-            writer.Write(data);
-
-            var message = FusionMessage.ModuleCreate<PortalGunFireMessage>(writer);
-
-            MessageSender.SendToServer(NetworkChannel.Reliable, message);
+            MessageRelay.RelayModule<PortalGunFireMessage, PortalGunFireData>(data, NetworkChannel.Reliable, RelayType.ToOtherClients);
 
             return true;
         }

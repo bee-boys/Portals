@@ -1,7 +1,7 @@
 ﻿using LabFusion.Data;
 using LabFusion.Entities;
-using LabFusion.Exceptions;
 using LabFusion.Network;
+using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 
 using Portals.MonoBehaviours;
@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Portals.Fusion;
 
-public class PortalSpawnData : IFusionSerializable
+public class PortalSpawnData : INetSerializable
 {
     public byte playerId;
 
@@ -28,6 +28,8 @@ public class PortalSpawnData : IFusionSerializable
     public PortalShape shape;
 
     public int id;
+
+    private SerializedQuaternion _compressedRotation = null;
 
     public static PortalSpawnData Create(byte playerId, ushort gunId, PortalSpawner.PortalSpawnInfo spawnInfo)
     {
@@ -46,50 +48,37 @@ public class PortalSpawnData : IFusionSerializable
         };
     }
 
-    public void Serialize(FusionWriter writer)
+    public void Serialize(INetSerializer serializer)
     {
-        writer.Write(playerId);
+        if (!serializer.IsReader)
+        {
+            _compressedRotation = SerializedQuaternion.Compress(rotation);
+        }
 
-        writer.Write(gunId);
-        writer.Write(primary);
-        writer.Write(size);
+        serializer.SerializeValue(ref playerId);
 
-        writer.Write(position);
-        writer.Write(SerializedQuaternion.Compress(rotation));
+        serializer.SerializeValue(ref gunId);
+        serializer.SerializeValue(ref primary);
+        serializer.SerializeValue(ref size);
 
-        writer.Write((byte)shape);
-        writer.Write(id);
-    }
+        serializer.SerializeValue(ref position);
+        serializer.SerializeValue(ref rotation);
 
-    public void Deserialize(FusionReader reader)
-    {
-        playerId = reader.ReadByte();
+        serializer.SerializeValue(ref shape, Precision.OneByte);
+        serializer.SerializeValue(ref id);
 
-        gunId = reader.ReadUInt16();
-        primary = reader.ReadBoolean();
-        size = reader.ReadVector2();
-
-        position = reader.ReadVector3();
-        rotation = reader.ReadFusionSerializable<SerializedQuaternion>().Expand();
-
-        shape = (PortalShape)reader.ReadByte();
-        id = reader.ReadInt32();
+        if (serializer.IsReader)
+        {
+            rotation = _compressedRotation.Expand();
+        }
     }
 }
 
 public class PortalSpawnMessage : ModuleMessageHandler
 {
-    public override void HandleMessage(byte[] bytes, bool isServerHandled = false)
+    protected override void OnHandleMessage(ReceivedMessage received)
     {
-        using var reader = FusionReader.Create(bytes);
-
-        var data = reader.ReadFusionSerializable<PortalSpawnData>();
-
-        if (isServerHandled)
-        {
-            MessageSender.BroadcastMessageExcept(data.playerId, NetworkChannel.Reliable, FusionMessage.ModuleCreate<PortalSpawnMessage>(bytes), false);
-            return;
-        }
+        var data = received.ReadData<PortalSpawnData>();
 
         var networkEntity = NetworkEntityManager.IdManager.RegisteredEntities.GetEntity(data.gunId);
 
