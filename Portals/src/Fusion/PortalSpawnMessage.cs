@@ -13,38 +13,38 @@ namespace Portals.Fusion;
 
 public class PortalSpawnData : INetSerializable
 {
-    public byte playerId;
+    public byte PlayerID;
 
-    public ushort gunId;
+    public ushort GunID;
 
-    public bool primary;
+    public bool Primary;
 
-    public Vector2 size;
+    public Vector2 Size;
 
-    public Vector3 position;
+    public Vector3 Position;
 
-    public Quaternion rotation;
+    public Quaternion Rotation;
 
-    public PortalShape shape;
+    public PortalShape Shape;
 
-    public int id;
+    public int ID;
 
     private SerializedQuaternion _compressedRotation = null;
 
-    public static PortalSpawnData Create(byte playerId, ushort gunId, PortalSpawner.PortalSpawnInfo spawnInfo)
+    public static PortalSpawnData Create(byte playerID, ushort gunID, PortalSpawner.PortalSpawnInfo spawnInfo)
     {
         return new PortalSpawnData()
         {
-            playerId = playerId,
+            PlayerID = playerID,
 
-            gunId = gunId,
-            primary = spawnInfo.Primary,
-            size = spawnInfo.Size,
+            GunID = gunID,
+            Primary = spawnInfo.Primary,
+            Size = spawnInfo.Size,
 
-            position = spawnInfo.Position,
-            rotation = spawnInfo.Rotation,
-            shape = spawnInfo.Shape,
-            id = spawnInfo.ID.GetValueOrDefault(),
+            Position = spawnInfo.Position,
+            Rotation = spawnInfo.Rotation,
+            Shape = spawnInfo.Shape,
+            ID = spawnInfo.ID.GetValueOrDefault(),
         };
     }
 
@@ -52,24 +52,24 @@ public class PortalSpawnData : INetSerializable
     {
         if (!serializer.IsReader)
         {
-            _compressedRotation = SerializedQuaternion.Compress(rotation);
+            _compressedRotation = SerializedQuaternion.Compress(Rotation);
         }
 
-        serializer.SerializeValue(ref playerId);
+        serializer.SerializeValue(ref PlayerID);
 
-        serializer.SerializeValue(ref gunId);
-        serializer.SerializeValue(ref primary);
-        serializer.SerializeValue(ref size);
+        serializer.SerializeValue(ref GunID);
+        serializer.SerializeValue(ref Primary);
+        serializer.SerializeValue(ref Size);
 
-        serializer.SerializeValue(ref position);
-        serializer.SerializeValue(ref rotation);
+        serializer.SerializeValue(ref Position);
+        serializer.SerializeValue(ref _compressedRotation);
 
-        serializer.SerializeValue(ref shape, Precision.OneByte);
-        serializer.SerializeValue(ref id);
+        serializer.SerializeValue(ref Shape, Precision.OneByte);
+        serializer.SerializeValue(ref ID);
 
         if (serializer.IsReader)
         {
-            rotation = _compressedRotation.Expand();
+            Rotation = _compressedRotation.Expand();
         }
     }
 }
@@ -80,7 +80,7 @@ public class PortalSpawnMessage : ModuleMessageHandler
     {
         var data = received.ReadData<PortalSpawnData>();
 
-        var networkEntity = NetworkEntityManager.IdManager.RegisteredEntities.GetEntity(data.gunId);
+        var networkEntity = NetworkEntityManager.IdManager.RegisteredEntities.GetEntity(data.GunID);
 
         if (networkEntity == null)
         {
@@ -98,12 +98,12 @@ public class PortalSpawnMessage : ModuleMessageHandler
 
         var spawnInfo = new PortalSpawner.PortalSpawnInfo()
         {
-            Size = data.size,
-            Shape = data.shape,
-            ID = data.id,
-            Position = data.position,
-            Rotation = data.rotation,
-            Primary = data.primary,
+            Size = data.Size,
+            Shape = data.Shape,
+            ID = data.ID,
+            Position = data.Position,
+            Rotation = data.Rotation,
+            Primary = data.Primary,
             SpawnCallback = OnPortalSpawned,
         };
 
@@ -113,7 +113,7 @@ public class PortalSpawnMessage : ModuleMessageHandler
         {
             if (gun != null)
             {
-                gun.RegisterPortal(portal, data.primary);
+                gun.RegisterPortal(portal, data.Primary);
             }
         }
     }
