@@ -75,7 +75,7 @@ public class PortalsModule : Module
             return;
         }
 
-        var data = PortalSpawnData.Create(PlayerIdManager.LocalSmallId, networkEntity.Id, spawnInfo);
+        var data = PortalSpawnData.Create(PlayerIDManager.LocalSmallID, networkEntity.ID, spawnInfo);
 
         MessageRelay.RelayModule<PortalSpawnMessage, PortalSpawnData>(data, NetworkChannel.Reliable, RelayType.ToOtherClients);
     }
@@ -131,8 +131,8 @@ public class PortalsModule : Module
         {
             var data = new PortalGunFireData()
             {
-                playerId = PlayerIdManager.LocalSmallId,
-                entityId = networkEntity.Id,
+                playerId = PlayerIDManager.LocalSmallID,
+                entityId = networkEntity.ID,
                 primary = primary,
                 size = size
             };
