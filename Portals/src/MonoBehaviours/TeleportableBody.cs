@@ -30,11 +30,14 @@ public class TeleportableBody : MonoBehaviour
 
     public TeleportableTracker Tracker => _tracker;
 
+    public Transform TrackerTransform => _trackerTransform;
+
     private MarrowBody _marrowBody = null;
     private InteractableHost _host = null;
     private bool _hasHost = false;
 
     private TeleportableTracker _tracker = null;
+    private Transform _trackerTransform = null;
 
     public Portal CurrentPortal => OverridePortal ? OverridePortal : TriggeredPortal;
 
@@ -182,6 +185,8 @@ public class TeleportableBody : MonoBehaviour
         trackerGameObject.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
         trackerGameObject.transform.localScale = Vector3.one;
 
+        _trackerTransform = trackerGameObject.transform;
+
         _tracker = trackerGameObject.AddComponent<TeleportableTracker>();
 
         _tracker.OnTriggerEnterEvent += OnTrackerTriggerEnter;
@@ -254,7 +259,7 @@ public class TeleportableBody : MonoBehaviour
 
     public Vector3 GetAnchor()
     {
-        return Tracker.transform.TransformPoint(Tracker.TrackerCollider.center);
+        return TrackerTransform.TransformPoint(Tracker.TrackerCollider.center);
     }
 
     public void Pack(TeleportableBody hostBody)

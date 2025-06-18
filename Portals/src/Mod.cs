@@ -9,6 +9,8 @@ using Unity.XR.MockHMD;
 
 using UnityEngine.XR.Management;
 
+using System.Reflection;
+
 namespace Portals;
 
 public class PortalsMod : MelonMod
@@ -19,9 +21,12 @@ public class PortalsMod : MelonMod
 
     public static bool IsMockHMD { get; private set; } = false;
 
+    public static Assembly PortalsAssembly { get; private set; }
+
     public override void OnInitializeMelon()
     {
         Logger = LoggerInstance;
+        PortalsAssembly = MelonAssembly.Assembly;
 
         Hooking.OnLevelLoaded += OnLevelLoaded;
 

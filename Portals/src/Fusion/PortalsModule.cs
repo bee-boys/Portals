@@ -1,6 +1,7 @@
 ﻿using LabFusion.Entities;
 using LabFusion.Network;
 using LabFusion.Player;
+using LabFusion.Scene;
 using LabFusion.SDK.Modules;
 
 using Portals.MonoBehaviours;
@@ -28,9 +29,8 @@ public class PortalsModule : Module
     {
         base.OnModuleRegistered();
 
-        EntityComponentManager.RegisterComponent<PortalGunExtender>();
-        ModuleMessageHandler.RegisterHandler<PortalGunFireMessage>();
-        ModuleMessageHandler.RegisterHandler<PortalSpawnMessage>();
+        EntityComponentManager.LoadComponents(PortalsMod.PortalsAssembly);
+        ModuleMessageManager.LoadHandlers(PortalsMod.PortalsAssembly);
 
         PortalGun.OnFireEvent += OnPortalGunFired;
         TeleportableRigManager.OnScaleEvent += OnRigManagerScaled;
@@ -53,7 +53,7 @@ public class PortalsModule : Module
 
     private void OnProjectileHit(PortalGun origin, PortalSpawner.PortalSpawnInfo spawnInfo)
     {
-        if (!NetworkInfo.HasServer)
+        if (!NetworkSceneManager.IsLevelNetworked)
         {
             return;
         }
@@ -77,12 +77,12 @@ public class PortalsModule : Module
 
         var data = PortalSpawnData.Create(PlayerIDManager.LocalSmallID, networkEntity.ID, spawnInfo);
 
-        MessageRelay.RelayModule<PortalSpawnMessage, PortalSpawnData>(data, NetworkChannel.Reliable, RelayType.ToOtherClients);
+        MessageRelay.RelayModule<PortalSpawnMessage, PortalSpawnData>(data, CommonMessageRoutes.ReliableToOtherClients);
     }
 
     private bool OnCheckProjectileHit(PortalProjectile projectile)
     {
-        if (!NetworkInfo.HasServer)
+        if (!NetworkSceneManager.IsLevelNetworked)
         {
             return true;
         }
@@ -115,7 +115,7 @@ public class PortalsModule : Module
             return true;
         }
 
-        if (!NetworkInfo.HasServer)
+        if (!NetworkSceneManager.IsLevelNetworked)
         {
             return true;
         }
@@ -131,13 +131,13 @@ public class PortalsModule : Module
         {
             var data = new PortalGunFireData()
             {
-                playerId = PlayerIDManager.LocalSmallID,
-                entityId = networkEntity.ID,
-                primary = primary,
-                size = size
+                PlayerID = PlayerIDManager.LocalSmallID,
+                Entity = new(networkEntity),
+                Primary = primary,
+                Dimensions = size
             };
 
-            MessageRelay.RelayModule<PortalGunFireMessage, PortalGunFireData>(data, NetworkChannel.Reliable, RelayType.ToOtherClients);
+            MessageRelay.RelayModule<PortalGunFireMessage, PortalGunFireData>(data, CommonMessageRoutes.ReliableToOtherClients);
 
             return true;
         }

@@ -15,11 +15,11 @@ public class PortalSpawnData : INetSerializable
 {
     public byte PlayerID;
 
-    public ushort GunID;
+    public NetworkEntityReference GunEntity;
 
     public bool Primary;
 
-    public Vector2 Size;
+    public Vector2 Dimensions;
 
     public Vector3 Position;
 
@@ -37,9 +37,9 @@ public class PortalSpawnData : INetSerializable
         {
             PlayerID = playerID,
 
-            GunID = gunID,
+            GunEntity = new(gunID),
             Primary = spawnInfo.Primary,
-            Size = spawnInfo.Size,
+            Dimensions = spawnInfo.Size,
 
             Position = spawnInfo.Position,
             Rotation = spawnInfo.Rotation,
@@ -57,9 +57,9 @@ public class PortalSpawnData : INetSerializable
 
         serializer.SerializeValue(ref PlayerID);
 
-        serializer.SerializeValue(ref GunID);
+        serializer.SerializeValue(ref GunEntity);
         serializer.SerializeValue(ref Primary);
-        serializer.SerializeValue(ref Size);
+        serializer.SerializeValue(ref Dimensions);
 
         serializer.SerializeValue(ref Position);
         serializer.SerializeValue(ref _compressedRotation);
@@ -80,7 +80,7 @@ public class PortalSpawnMessage : ModuleMessageHandler
     {
         var data = received.ReadData<PortalSpawnData>();
 
-        var networkEntity = NetworkEntityManager.IdManager.RegisteredEntities.GetEntity(data.GunID);
+        var networkEntity = data.GunEntity.GetEntity();
 
         if (networkEntity == null)
         {
@@ -98,7 +98,7 @@ public class PortalSpawnMessage : ModuleMessageHandler
 
         var spawnInfo = new PortalSpawner.PortalSpawnInfo()
         {
-            Size = data.Size,
+            Size = data.Dimensions,
             Shape = data.Shape,
             ID = data.ID,
             Position = data.Position,

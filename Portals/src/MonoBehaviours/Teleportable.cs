@@ -50,6 +50,7 @@ public class Teleportable : MonoBehaviour
     protected float _initialSign = 0f;
 
     protected CloneRenderer _cloneRenderer = null;
+    public CloneRenderer CloneRenderer => _cloneRenderer;
 
     private void Awake()
     {
@@ -241,9 +242,13 @@ public class Teleportable : MonoBehaviour
         // Enable collision with its expander
         _inPortal.Expander.IgnoreCollision(this, _initialSign, false);
 
-        if (_cloneRenderer)
+        if (HasClone)
         {
-            _cloneRenderer.Show();
+            CloneRenderer.Show();
+        }
+        else
+        {
+            _ensureCloneNextFrame = true;
         }
 
         OnPortalsChanged(inPortal, outPortal);
@@ -271,9 +276,9 @@ public class Teleportable : MonoBehaviour
         _initialSign = 0f;
         _portalCount = 0;
 
-        if (_cloneRenderer)
+        if (HasClone)
         {
-            _cloneRenderer.Hide();
+            CloneRenderer.Hide();
         }
 
         OnPortalsChanged(null, null);
@@ -309,11 +314,39 @@ public class Teleportable : MonoBehaviour
     {
         DestroyClone();
 
-        _cloneRenderer = CloneCreator.CreateClone(root);
+        _cloneRenderer = CloneCreator.CreateCloneRenderer(root);
 
         if (HasPortals)
         {
-            _cloneRenderer.Show();
+            CloneRenderer.Show();
+        }
+    }
+
+    private bool _ensureCloneNextFrame = false;
+
+    public void EnsureCloneExists()
+    {
+        if (HasClone)
+        {
+            return;
+        }
+
+        OnEnsureClone();
+
+        if (HasClone && HasPortals)
+        {
+            CloneRenderer.Show();
+        }
+    }
+
+    protected virtual void OnEnsureClone() { }
+
+    private void Update()
+    {
+        if (_ensureCloneNextFrame)
+        {
+            _ensureCloneNextFrame = false;
+            EnsureCloneExists();
         }
     }
 
@@ -335,13 +368,13 @@ public class Teleportable : MonoBehaviour
             return;
         }
 
-        var cloneMatrix = CalculateTeleportedMatrix(_cloneRenderer.OriginalTransform.localToWorldMatrix, _inPortal.PortalEnterMatrix, _outPortal.PortalExitMatrix);
+        var cloneMatrix = CalculateTeleportedMatrix(CloneRenderer.OriginalTransform.localToWorldMatrix, _inPortal.PortalEnterMatrix, _outPortal.PortalExitMatrix);
 
-        _cloneRenderer.CloneTransform.position = cloneMatrix.GetPosition();
-        _cloneRenderer.CloneTransform.rotation = cloneMatrix.rotation;
-        _cloneRenderer.CloneTransform.localScale = cloneMatrix.lossyScale;
+        CloneRenderer.CloneTransform.position = cloneMatrix.GetPosition();
+        CloneRenderer.CloneTransform.rotation = cloneMatrix.rotation;
+        CloneRenderer.CloneTransform.localScale = cloneMatrix.lossyScale;
 
-        _cloneRenderer.OnCloneUpdate();
+        CloneRenderer.OnCloneUpdate();
     }
 
     public float GetPortalSign(Portal portal)

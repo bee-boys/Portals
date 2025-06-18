@@ -6,10 +6,10 @@ namespace Portals.Rendering;
 
 public static class CloneCreator
 {
-    public static Transform TempCloningTransform => _tempCloningTransform;
+    public static Transform DisabledCloningTransform => _disabledCloningTransform;
 
-    private static GameObject _tempCloningParent = null;
-    private static Transform _tempCloningTransform = null;
+    private static GameObject _disabledCloningGameObject = null;
+    private static Transform _disabledCloningTransform = null;
 
     public static void OnLevelLoaded()
     {
@@ -18,53 +18,72 @@ public static class CloneCreator
 
     private static void ValidateTempParent()
     {
-        if (_tempCloningParent != null)
+        if (_disabledCloningGameObject != null)
         {
             return;
         }
 
-        _tempCloningParent = new GameObject("Temp Cloning Parent");
-        _tempCloningParent.SetActive(false);
+        _disabledCloningGameObject = new GameObject("Disabled Cloning Parent");
+        _disabledCloningGameObject.SetActive(false);
 
-        _tempCloningTransform = _tempCloningParent.transform;
+        _disabledCloningTransform = _disabledCloningGameObject.transform;
     }
 
-    public static CloneRenderer CreateClone(GameObject root)
+    public static CloneRenderer CreateCloneRenderer(GameObject reference)
+    {
+        var clone = CreateCloneGameObject(reference);
+
+        var renderer = clone.AddComponent<CloneRenderer>();
+        renderer.Initialize(reference);
+
+        return renderer;
+    }
+
+    private static GameObject CreateCloneGameObject(GameObject reference)
     {
         ValidateTempParent();
 
-        var clone = GameObject.Instantiate(root, _tempCloningTransform);
+        var clone = GameObject.Instantiate(reference, DisabledCloningTransform);
         clone.SetActive(false);
         clone.transform.parent = null;
 
         Strip(clone);
 
-        var renderer = clone.AddComponent<CloneRenderer>();
-        renderer.Initialize(root);
-
-        return renderer;
+        clone.name = GetCloneName(reference.name);
+        return clone;
     }
+
+    private static string GetCloneName(string original) => $"{original} (Portal Renderer)";
 
     private static void Strip(GameObject root)
     {
+        var components = root.GetComponentsInChildren<Component>(true);
+
         // Multiple times to make sure no dependent scripts are missed
         for (var i = 0; i < 8; i++)
         {
-            foreach (var component in root.GetComponentsInChildren<Component>(true))
+            int count = 0;
+
+            foreach (var component in components)
             {
-                // GetComponents includes missing scripts
                 if (component == null)
                 {
                     continue;
                 }
 
-                // Don't destroy transforms
                 if (component.TryCast<Transform>())
                 {
                     continue;
                 }
 
+                count++;
+
                 GameObject.DestroyImmediate(component);
+            }
+
+            if (count <= 0)
+            {
+                break;
             }
         }
     }

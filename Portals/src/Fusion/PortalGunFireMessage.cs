@@ -11,22 +11,22 @@ public class PortalGunFireData : INetSerializable
 {
     public const int Size = sizeof(byte) + sizeof(ushort) + sizeof(bool) + sizeof(float) * 2;
 
-    public byte playerId;
+    public byte PlayerID;
 
-    public ushort entityId;
+    public NetworkEntityReference Entity;
 
-    public bool primary;
+    public bool Primary;
 
-    public Vector2 size;
+    public Vector2 Dimensions;
 
     public int? GetSize() => Size;
 
     public void Serialize(INetSerializer serializer)
     {
-        serializer.SerializeValue(ref playerId);
-        serializer.SerializeValue(ref entityId);
-        serializer.SerializeValue(ref primary);
-        serializer.SerializeValue(ref size);
+        serializer.SerializeValue(ref PlayerID);
+        serializer.SerializeValue(ref Entity);
+        serializer.SerializeValue(ref Primary);
+        serializer.SerializeValue(ref Dimensions);
     }
 }
 
@@ -36,7 +36,7 @@ public class PortalGunFireMessage : ModuleMessageHandler
     {
         var data = received.ReadData<PortalGunFireData>();
 
-        var networkEntity = NetworkEntityManager.IdManager.RegisteredEntities.GetEntity(data.entityId);
+        var networkEntity = data.Entity.GetEntity();
 
         if (networkEntity == null)
         {
@@ -54,7 +54,7 @@ public class PortalGunFireMessage : ModuleMessageHandler
 
         PortalsModule.IgnoreOverrides = true;
 
-        gun.Fire(data.primary, data.size);
+        gun.Fire(data.Primary, data.Dimensions);
 
         PortalsModule.IgnoreOverrides = false;
     }

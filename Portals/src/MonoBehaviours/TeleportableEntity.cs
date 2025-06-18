@@ -15,11 +15,14 @@ public class TeleportableEntity : Teleportable
 
     protected override void OnTeleportableAwake()
     {
-        CreateClone(gameObject);
-
         var marrowEntity = GetComponent<MarrowEntity>();
 
         SetupEntity(marrowEntity);
+    }
+
+    protected override void OnEnsureClone()
+    {
+        CreateClone(gameObject);
     }
 
     private void LateUpdate()

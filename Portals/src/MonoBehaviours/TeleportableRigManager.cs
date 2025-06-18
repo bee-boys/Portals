@@ -73,8 +73,6 @@ public class TeleportableRigManager : Teleportable
 
         _physicsRig = _rigManager.physicsRig;
 
-        CreateClone(_rigManager.gameObject);
-
         var marrowEntity = PhysicsRig.marrowEntity;
 
         SetupEntity(marrowEntity);
@@ -94,6 +92,11 @@ public class TeleportableRigManager : Teleportable
 
         _rigManager.OnPostLateUpdate -= _onPostLateUpdate;
         _onPostLateUpdate = null;
+    }
+
+    protected override void OnEnsureClone()
+    {
+        CreateClone(RigManager.gameObject);
     }
 
     protected override void SetupBody(MarrowBody marrowBody)
@@ -192,7 +195,10 @@ public class TeleportableRigManager : Teleportable
     {
         CalculateTrackers();
 
-        CreateClone(RigManager.gameObject);
+        if (HasClone)
+        {
+            CreateClone(RigManager.gameObject);
+        }
     }
 
     public override Vector3 GetAnchor()
@@ -354,7 +360,7 @@ public class TeleportableRigManager : Teleportable
 
         var onLoaded = (GameObject avatar) =>
         {
-            GameObject instance = GameObject.Instantiate(avatar, CloneCreator.TempCloningTransform);
+            GameObject instance = GameObject.Instantiate(avatar, CloneCreator.DisabledCloningTransform);
             instance.SetActive(false);
 
             instance.transform.parent = RigManager.transform;
