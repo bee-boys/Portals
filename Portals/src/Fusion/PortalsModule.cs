@@ -8,7 +8,6 @@ using Portals.MonoBehaviours;
 using Portals.Pooling;
 
 using System;
-
 using UnityEngine;
 
 namespace Portals.Fusion;
@@ -33,6 +32,10 @@ public class PortalsModule : Module
         ModuleMessageManager.LoadHandlers(PortalsMod.PortalsAssembly);
 
         PortalGun.OnFireEvent += OnPortalGunFired;
+
+        Teleportable.OnTryTeleportEvent += OnTryTeleport;
+        Teleportable.OnBeforeTeleportEvent += OnTeleported;
+
         TeleportableRigManager.OnScaleEvent += OnRigManagerScaled;
 
         PortalProjectile.OnCheckHit += OnCheckProjectileHit;
@@ -44,6 +47,10 @@ public class PortalsModule : Module
         base.OnModuleUnregistered();
 
         PortalGun.OnFireEvent -= OnPortalGunFired;
+
+        Teleportable.OnTryTeleportEvent -= OnTryTeleport;
+        Teleportable.OnBeforeTeleportEvent -= OnTeleported;
+
         TeleportableRigManager.OnScaleEvent -= OnRigManagerScaled;
 
         PortalProjectile.OnCheckHit -= OnCheckProjectileHit;
@@ -147,6 +154,56 @@ public class PortalsModule : Module
         }
     }
 
+    private bool OnTryTeleport(Teleportable teleportable, Portal inPortal, Portal outPortal)
+    {
+        if (!NetworkSceneManager.IsLevelNetworked)
+        {
+            return true;
+        }
+
+        var networkEntity = TeleportableExtender.Cache.Get(teleportable);
+
+        if (networkEntity == null)
+        {
+            return true;
+        }
+
+        if (networkEntity.IsOwner)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private void OnTeleported(Teleportable teleportable, Portal inPortal, Portal outPortal)
+    {
+        if (!NetworkSceneManager.IsLevelNetworked)
+        {
+            return;
+        }
+
+        var networkEntity = TeleportableExtender.Cache.Get(teleportable);
+
+        if (networkEntity == null)
+        {
+            return;
+        }
+
+        if (!networkEntity.IsOwner)
+        {
+            return;
+        }
+
+        var data = new TeleportableTeleportData()
+        {
+            Entity = new(networkEntity),
+        };
+
+        MessageRelay.RelayModule<TeleportableTeleportMessage, TeleportableTeleportData>(data, CommonMessageRoutes.ReliableToOtherClients);
+    }
 
     private bool OnRigManagerScaled(TeleportableRigManager teleportable, float scale)
     {
@@ -155,7 +212,7 @@ public class PortalsModule : Module
             return true;
         }
 
-        if (!NetworkInfo.HasServer)
+        if (!NetworkSceneManager.IsLevelNetworked)
         {
             return true;
         }

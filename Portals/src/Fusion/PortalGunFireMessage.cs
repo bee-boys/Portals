@@ -9,7 +9,7 @@ namespace Portals.Fusion;
 
 public class PortalGunFireData : INetSerializable
 {
-    public const int Size = sizeof(byte) + sizeof(ushort) + sizeof(bool) + sizeof(float) * 2;
+    public const int Size = sizeof(byte) + NetworkEntityReference.Size + sizeof(bool) + sizeof(float) * 2;
 
     public byte PlayerID;
 

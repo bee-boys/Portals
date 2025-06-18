@@ -24,6 +24,12 @@ public class Teleportable : MonoBehaviour
 
     public static event Action<Teleportable> OnTeleportableEnabled, OnTeleportableDisabled;
 
+    public delegate bool TryTeleportCallback(Teleportable teleportable, Portal inPortal, Portal outPortal);
+    public delegate void TeleportCallback(Teleportable teleportable, Portal inPortal, Portal outPortal);
+
+    public static event TryTeleportCallback OnTryTeleportEvent;
+    public static event TeleportCallback OnBeforeTeleportEvent;
+
     public MarrowEntity MarrowEntity => _marrowEntity;
     private MarrowEntity _marrowEntity = null;
 
@@ -179,8 +185,29 @@ public class Teleportable : MonoBehaviour
         return transform.position;
     }
 
-    public virtual void Teleport(Portal inPortal, Portal outPortal)
+    public bool TryTeleport(Portal inPortal, Portal outPortal)
     {
+        if (OnTryTeleportEvent != null)
+        {
+            bool teleport = OnTryTeleportEvent(this, inPortal, outPortal);
+
+            if (!teleport)
+            {
+                return false;
+            }
+        }
+
+        OnBeforeTeleportEvent?.Invoke(this, inPortal, outPortal);
+
+        Teleport(inPortal, outPortal);
+
+        return true;
+    }
+
+    public void Teleport(Portal inPortal, Portal outPortal)
+    {
+        OnTeleport(inPortal, outPortal);
+
         SetPortals(outPortal, inPortal);
 
         UpdateClone();
@@ -198,6 +225,8 @@ public class Teleportable : MonoBehaviour
             }
         }
     }
+
+    protected virtual void OnTeleport(Portal inPortal, Portal outPortal) { }
 
     public void SetPortals(Portal inPortal, Portal outPortal)
     {

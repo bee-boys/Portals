@@ -22,12 +22,10 @@ public class TeleportablePuppetMaster : TeleportableEntity
         _puppetMaster = GetComponentInChildren<PuppetMaster>();
     }
 
-    public override void Teleport(Portal inPortal, Portal outPortal)
+    protected override void OnTeleport(Portal inPortal, Portal outPortal)
     {
         // updateJointAnchors doesn't like scale
         // So if the puppet teleports, just disable it
         PuppetMaster.updateJointAnchors = false;
-
-        base.Teleport(inPortal, outPortal);
     }
 }

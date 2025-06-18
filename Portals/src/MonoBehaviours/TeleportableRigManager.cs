@@ -135,7 +135,7 @@ public class TeleportableRigManager : Teleportable
 
         if (PassedThrough(_initialSign, newSign) && InBounds(_inPortal, GetAnchor()) && !IsGrabbed())
         {
-            Teleport(inPortal, outPortal);
+            TryTeleport(inPortal, outPortal);
         }
     }
 
@@ -206,7 +206,7 @@ public class TeleportableRigManager : Teleportable
         return Headset.position;
     }
 
-    public override void Teleport(Portal inPortal, Portal outPortal)
+    protected override void OnTeleport(Portal inPortal, Portal outPortal)
     {
         var inPortalMatrix = inPortal.PortalEnterMatrix;
         var outPortalMatrix = outPortal.PortalExitMatrix;
@@ -311,8 +311,6 @@ public class TeleportableRigManager : Teleportable
 
         // Teleport grips
         TeleportHands(PhysicsRig.leftHand, PhysicsRig.rightHand, inPortal, outPortal);
-
-        base.Teleport(inPortal, outPortal);
     }
 
     private void UpdateArt()

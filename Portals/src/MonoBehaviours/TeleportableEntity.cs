@@ -41,11 +41,11 @@ public class TeleportableEntity : Teleportable
 
         if (PassedThrough(_initialSign, newSign) && InBounds(inPortal, GetAnchor()) && !IsGrabbed())
         {
-            Teleport(inPortal, outPortal);
+            TryTeleport(inPortal, outPortal);
         }
     }
 
-    public override void Teleport(Portal inPortal, Portal outPortal)
+    protected override void OnTeleport(Portal inPortal, Portal outPortal)
     {
         var inMatrix = inPortal.PortalEnterMatrix;
         var inMatrixInverse = inMatrix.inverse;
@@ -90,8 +90,6 @@ public class TeleportableEntity : Teleportable
         {
             UpdateJoints();
         }
-
-        base.Teleport(inPortal, outPortal);
     }
 
     public void Scale(float factor)
