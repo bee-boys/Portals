@@ -1,7 +1,7 @@
 {
     "name": "Portals",
     "version_number": "1.1.0",
-    "website_url": "",
+    "website_url": "https://github.com/Lakatrazz/Portals",
     "description": "Adds functional portals that can be seen through.",
     "dependencies": [
          "gnonme-BoneLib-3.1.2"
