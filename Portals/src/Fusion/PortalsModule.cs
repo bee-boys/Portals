@@ -34,7 +34,7 @@ public class PortalsModule : Module
         PortalGun.OnFireEvent += OnPortalGunFired;
 
         Teleportable.OnTryTeleportEvent += OnTryTeleport;
-        Teleportable.OnBeforeTeleportEvent += OnTeleported;
+        Teleportable.OnBeforeTeleportEvent += OnBeforeTeleport;
 
         TeleportableRigManager.OnScaleEvent += OnRigManagerScaled;
 
@@ -49,7 +49,7 @@ public class PortalsModule : Module
         PortalGun.OnFireEvent -= OnPortalGunFired;
 
         Teleportable.OnTryTeleportEvent -= OnTryTeleport;
-        Teleportable.OnBeforeTeleportEvent -= OnTeleported;
+        Teleportable.OnBeforeTeleportEvent -= OnBeforeTeleport;
 
         TeleportableRigManager.OnScaleEvent -= OnRigManagerScaled;
 
@@ -178,7 +178,7 @@ public class PortalsModule : Module
         }
     }
 
-    private void OnTeleported(Teleportable teleportable, Portal inPortal, Portal outPortal)
+    private void OnBeforeTeleport(Teleportable teleportable, Portal inPortal, Portal outPortal)
     {
         if (!NetworkSceneManager.IsLevelNetworked)
         {
