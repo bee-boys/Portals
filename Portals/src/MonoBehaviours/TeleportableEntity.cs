@@ -65,34 +65,31 @@ public class TeleportableEntity : Teleportable
         var zScale = newScale.z / oldScale.z;
 
         var scaleFactor = Math.Abs(xScale * yScale * zScale);
+        var scaleVector = new Vector3(xScale, yScale, zScale);
+
         bool changedScale = !Mathf.Approximately(scaleFactor, 1f);
 
         transform.localScale = newScale;
 
-        if (changedScale)
+        foreach (var body in MarrowEntity.Bodies)
         {
-            var averageScale = (xScale + yScale + zScale) / 3f;
+            body._cachedRigidbodyInfo.mass *= scaleFactor;
+            body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
 
-            foreach (var body in MarrowEntity.Bodies)
+            if (!body.HasRigidbody)
             {
-                body._cachedRigidbodyInfo.mass *= scaleFactor;
-                body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
-
-                if (!body.HasRigidbody)
-                {
-                    continue;
-                }
-
-                var rigidbody = body._rigidbody;
-
-                rigidbody.mass *= scaleFactor;
-                rigidbody.inertiaTensor *= scaleFactor;
-
-                rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity - inPortal.Velocity)) + outPortal.Velocity;
-                rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * (rigidbody.angularVelocity - inPortal.AngularVelocity)) + outPortal.AngularVelocity;
-
-                rigidbody.centerOfMass *= averageScale;
+                continue;
             }
+
+            var rigidbody = body._rigidbody;
+
+            rigidbody.mass *= scaleFactor;
+            rigidbody.inertiaTensor *= scaleFactor;
+
+            rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity - inPortal.Velocity)) + outPortal.Velocity;
+            rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * (rigidbody.angularVelocity - inPortal.AngularVelocity)) + outPortal.AngularVelocity;
+
+            rigidbody.centerOfMass = Vector3.Scale(rigidbody.centerOfMass, scaleVector);
         }
 
         UpdateThrowing(inMatrixInverse, outMatrix);
