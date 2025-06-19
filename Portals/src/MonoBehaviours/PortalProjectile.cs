@@ -9,7 +9,7 @@ using Il2CppSLZ.Marrow.Audio;
 
 using Il2CppInterop.Runtime.Attributes;
 
-using Portals.Pooling;
+using Portals.Pool;
 
 namespace Portals.MonoBehaviours;
 

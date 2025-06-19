@@ -36,6 +36,12 @@ public static class RenderingHooks
 
     private static void OnBeginCameraRendering(ScriptableRenderContext ctx, Camera cam)
     {
+        // Prevent occasional memory access issues
+        if (ctx.m_Ptr == IntPtr.Zero || cam == null)
+        {
+            return;
+        }
+
         try
         {
             PreBeginCameraRendering?.Invoke(ctx, cam);

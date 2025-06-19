@@ -8,7 +8,7 @@ using UnityEngine;
 
 using MelonLoader;
 
-using Portals.Pooling;
+using Portals.Pool;
 
 using Il2CppSLZ.Marrow.Audio;
 using Il2CppSLZ.Marrow.Interaction;

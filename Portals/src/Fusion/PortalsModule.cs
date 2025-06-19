@@ -5,7 +5,7 @@ using LabFusion.Scene;
 using LabFusion.SDK.Modules;
 
 using Portals.MonoBehaviours;
-using Portals.Pooling;
+using Portals.Pool;
 
 using System;
 using UnityEngine;

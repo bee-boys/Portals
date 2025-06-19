@@ -5,7 +5,7 @@ using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 
 using Portals.MonoBehaviours;
-using Portals.Pooling;
+using Portals.Pool;
 
 using UnityEngine;
 

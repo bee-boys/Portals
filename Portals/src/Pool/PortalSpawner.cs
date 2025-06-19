@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 using UnityEngine;
 
-namespace Portals.Pooling;
+namespace Portals.Pool;
 
 public static class PortalSpawner
 {
