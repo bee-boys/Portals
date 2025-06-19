@@ -60,28 +60,39 @@ public class TeleportableEntity : Teleportable
         var oldScale = transform.localScale;
         var newScale = newMatrix.lossyScale;
 
-        var scaleFactor = Mathf.Abs((newScale.x / oldScale.x) * (newScale.y / oldScale.y) * (newScale.z / oldScale.z));
+        var xScale = newScale.x / oldScale.x;
+        var yScale = newScale.y / oldScale.y;
+        var zScale = newScale.z / oldScale.z;
+
+        var scaleFactor = Math.Abs(xScale * yScale * zScale);
         bool changedScale = !Mathf.Approximately(scaleFactor, 1f);
 
         transform.localScale = newScale;
 
-        foreach (var body in MarrowEntity.Bodies)
+        if (changedScale)
         {
-            body._cachedRigidbodyInfo.mass *= scaleFactor;
-            body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
+            var averageScale = (xScale + yScale + zScale) / 3f;
 
-            if (!body.HasRigidbody)
+            foreach (var body in MarrowEntity.Bodies)
             {
-                continue;
+                body._cachedRigidbodyInfo.mass *= scaleFactor;
+                body._cachedRigidbodyInfo.inertiaTensor *= scaleFactor;
+
+                if (!body.HasRigidbody)
+                {
+                    continue;
+                }
+
+                var rigidbody = body._rigidbody;
+
+                rigidbody.mass *= scaleFactor;
+                rigidbody.inertiaTensor *= scaleFactor;
+
+                rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity - inPortal.Velocity)) + outPortal.Velocity;
+                rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * (rigidbody.angularVelocity - inPortal.AngularVelocity)) + outPortal.AngularVelocity;
+
+                rigidbody.centerOfMass *= averageScale;
             }
-
-            var rigidbody = body._rigidbody;
-
-            rigidbody.mass *= scaleFactor;
-            rigidbody.inertiaTensor *= scaleFactor;
-
-            rigidbody.velocity = outMatrix.MultiplyVector(inMatrixInverse.MultiplyVector(rigidbody.velocity - inPortal.Velocity)) + outPortal.Velocity;
-            rigidbody.angularVelocity = outMatrix.rotation * (inMatrixInverse.rotation * (rigidbody.angularVelocity - inPortal.AngularVelocity)) + outPortal.AngularVelocity;
         }
 
         UpdateThrowing(inMatrixInverse, outMatrix);
@@ -112,6 +123,8 @@ public class TeleportableEntity : Teleportable
 
             rigidbody.mass *= massFactor;
             rigidbody.inertiaTensor *= massFactor;
+
+            rigidbody.centerOfMass *= factor;
         }
 
         UpdateJoints();
