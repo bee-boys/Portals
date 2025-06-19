@@ -27,5 +27,7 @@ public class TeleportablePuppetMaster : TeleportableEntity
         // updateJointAnchors doesn't like scale
         // So if the puppet teleports, just disable it
         PuppetMaster.updateJointAnchors = false;
+
+        base.OnTeleport(inPortal, outPortal);
     }
 }
