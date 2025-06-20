@@ -45,6 +45,8 @@ public static class PortalPreferences
 
     public static int MaxRecursion { get; private set; }
 
+    public static bool DisableInFusion { get; private set; } = false;
+
     public static event Action<float> OnRenderScaleChanged;
 
     private static MelonPreferences_Category _preferencesCategory = null;
@@ -57,6 +59,8 @@ public static class PortalPreferences
 
     private static MelonPreferences_Entry<int> _maxRecursionPreference = null;
 
+    private static MelonPreferences_Entry<bool> _disableInFusionPreference = null;
+
     private static Page _portalsPage = null;
 
     private static BoolElement _renderViewElement = null;
@@ -66,6 +70,8 @@ public static class PortalPreferences
     private static IntElement _renderDistanceElement = null;
 
     private static IntElement _maxRecursionElement = null;
+
+    private static BoolElement _disableInFusionElement = null;
 
     private static bool _preferencesSetup = false;
 
@@ -78,6 +84,8 @@ public static class PortalPreferences
         var defaultRenderDistance = 25;
 
         var defaultMaxRecursion = 1;
+
+        bool defaultDisableInFusion = false;
 
         if (HelperMethods.IsAndroid())
         {
@@ -93,6 +101,11 @@ public static class PortalPreferences
         _renderDistancePreference = _preferencesCategory.CreateEntry("Render Distance", defaultRenderDistance);
 
         _maxRecursionPreference = _preferencesCategory.CreateEntry("Max Recursion", defaultMaxRecursion);
+
+        if (PortalsMod.HasFusion)
+        {
+            _disableInFusionPreference = _preferencesCategory.CreateEntry("Disable In Fusion", defaultDisableInFusion);
+        }
 
         _preferencesSetup = true;
 
@@ -119,6 +132,12 @@ public static class PortalPreferences
         _limitDistanceElement.Value = LimitDistance;
         _renderDistanceElement.Value = RenderDistance;
         _maxRecursionElement.Value = MaxRecursion;
+
+        if (PortalsMod.HasFusion)
+        {
+            DisableInFusion = _disableInFusionPreference.Value;
+            _disableInFusionElement.Value = DisableInFusion;
+        }
     }
 
     private static void SetupBoneMenu()
@@ -132,6 +151,11 @@ public static class PortalPreferences
         _renderDistanceElement = _portalsPage.CreateInt("Render Distance", Color.yellow, _renderDistancePreference.Value, 1, 1, 100, OnSetRenderDistance);
 
         _maxRecursionElement = _portalsPage.CreateInt("Max Recursion", Color.yellow, _maxRecursionPreference.Value, 1, 1, 8, OnSetMaxRecursion);
+
+        if (PortalsMod.HasFusion)
+        {
+            _disableInFusionElement = _portalsPage.CreateBool("Disable In Fusion", Color.red, _disableInFusionPreference.Value, OnSetDisableInFusion);
+        }
     }
 
     private static void OnSetRenderView(bool value)
@@ -170,6 +194,14 @@ public static class PortalPreferences
     {
         MaxRecursion = value;
         _maxRecursionPreference.Value = value;
+
+        _preferencesCategory.SaveToFile(false);
+    }
+
+    private static void OnSetDisableInFusion(bool value)
+    {
+        DisableInFusion = value;
+        _disableInFusionPreference.Value = value;
 
         _preferencesCategory.SaveToFile(false);
     }

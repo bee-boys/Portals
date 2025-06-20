@@ -3,7 +3,7 @@ using LabFusion.Utilities;
 
 using Portals.MonoBehaviours;
 
-namespace Portals.Fusion;
+namespace PortalsModule;
 
 public class PortalGunExtender : EntityComponentExtender<PortalGun>
 {

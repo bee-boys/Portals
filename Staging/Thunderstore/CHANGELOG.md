@@ -1,3 +1,7 @@
+**v1.3.0**
+- Fixed Quest crashing without Fusion installed
+- Added toggle to disable while in Fusion
+
 **v1.2.0**
 - Improved IL2CPP memory crashes
 

@@ -3,9 +3,11 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 
+using Portals;
+
 using UnityEngine;
 
-namespace Portals.Fusion;
+namespace PortalsModule;
 
 public class PortalGunFireData : INetSerializable
 {
@@ -34,6 +36,11 @@ public class PortalGunFireMessage : ModuleMessageHandler
 {
     protected override void OnHandleMessage(ReceivedMessage received)
     {
+        if (PortalPreferences.DisableInFusion)
+        {
+            return;
+        }
+
         var data = received.ReadData<PortalGunFireData>();
 
         var networkEntity = data.Entity.GetEntity();

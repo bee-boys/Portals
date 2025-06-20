@@ -3,7 +3,7 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 
-namespace Portals.Fusion;
+namespace PortalsModule;
 
 public class TeleportableTeleportData : INetSerializable
 {

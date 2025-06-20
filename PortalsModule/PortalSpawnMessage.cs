@@ -4,12 +4,13 @@ using LabFusion.Network;
 using LabFusion.Network.Serialization;
 using LabFusion.SDK.Modules;
 
+using Portals;
 using Portals.MonoBehaviours;
 using Portals.Pool;
 
 using UnityEngine;
 
-namespace Portals.Fusion;
+namespace PortalsModule;
 
 public class PortalSpawnData : INetSerializable
 {
@@ -78,6 +79,11 @@ public class PortalSpawnMessage : ModuleMessageHandler
 {
     protected override void OnHandleMessage(ReceivedMessage received)
     {
+        if (PortalPreferences.DisableInFusion)
+        {
+            return;
+        }
+
         var data = received.ReadData<PortalSpawnData>();
 
         var networkEntity = data.GunEntity.GetEntity();

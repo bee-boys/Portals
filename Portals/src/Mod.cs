@@ -3,7 +3,6 @@
 using MelonLoader;
 
 using Portals.Rendering;
-using Portals.Fusion;
 
 using Unity.XR.MockHMD;
 
@@ -15,13 +14,15 @@ namespace Portals;
 
 public class PortalsMod : MelonMod
 {
-    public const string Version = "1.2.0";
+    public const string Version = "1.3.0";
 
     public static MelonLogger.Instance Logger { get; private set; }
 
     public static bool IsMockHMD { get; private set; } = false;
 
     public static Assembly PortalsAssembly { get; private set; }
+
+    public static bool HasFusion { get; private set; } = false;
 
     public override void OnInitializeMelon()
     {
@@ -30,17 +31,22 @@ public class PortalsMod : MelonMod
 
         Hooking.OnLevelLoaded += OnLevelLoaded;
 
-        PortalPreferences.SetupPreferences();
+        CheckFusion();
 
-        if (FindMelon("LabFusion", "Lakatrazz") != null)
-        {
-            LoadModule();
-        }
+        PortalPreferences.SetupPreferences();
     }
 
-    private static void LoadModule()
+    private static void CheckFusion()
     {
-        LabFusion.SDK.Modules.ModuleManager.RegisterModule<PortalsModule>();
+        if (FindMelon("LabFusion", "Lakatrazz") != null)
+        {
+            HasFusion = true;
+
+            EmbeddedResource.LoadAssemblyFromAssembly(PortalsAssembly, "Portals.resources.PortalsModule.dll")
+                .GetType("PortalsModule.ModuleLoader")
+                .GetMethod("LoadModule")
+                .Invoke(null, null);
+        }
     }
 
     public override void OnLateInitializeMelon()

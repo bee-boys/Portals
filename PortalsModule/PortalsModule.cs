@@ -4,13 +4,13 @@ using LabFusion.Player;
 using LabFusion.Scene;
 using LabFusion.SDK.Modules;
 
+using Portals;
 using Portals.MonoBehaviours;
 using Portals.Pool;
 
-using System;
 using UnityEngine;
 
-namespace Portals.Fusion;
+namespace PortalsModule;
 
 public class PortalsModule : Module
 {
@@ -65,6 +65,11 @@ public class PortalsModule : Module
             return;
         }
 
+        if (PortalPreferences.DisableInFusion)
+        {
+            return;
+        }
+
         if (origin == null)
         {
             return;
@@ -92,6 +97,11 @@ public class PortalsModule : Module
         if (!NetworkSceneManager.IsLevelNetworked)
         {
             return true;
+        }
+
+        if (PortalPreferences.DisableInFusion)
+        {
+            return false;
         }
 
         if (projectile.Data.Origin == null)
@@ -125,6 +135,11 @@ public class PortalsModule : Module
         if (!NetworkSceneManager.IsLevelNetworked)
         {
             return true;
+        }
+
+        if (PortalPreferences.DisableInFusion)
+        {
+            return false;
         }
 
         var networkEntity = PortalGunExtender.Cache.Get(gun);
