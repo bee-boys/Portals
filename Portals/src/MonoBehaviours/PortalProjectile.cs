@@ -206,6 +206,7 @@ public class PortalProjectile : MonoBehaviour
         CheckHit(hitInfo);
     }
 
+    [HideFromIl2Cpp]
     private void CheckHit(RaycastHit hitInfo)
     {
         var normal = hitInfo.normal;
@@ -241,6 +242,7 @@ public class PortalProjectile : MonoBehaviour
         TrySpawn(position, rotation);
     }
 
+    [HideFromIl2Cpp]
     private void OnInvalidHit(Vector3 position, Quaternion rotation)
     {
         transform.SetPositionAndRotation(position, rotation);
@@ -418,6 +420,7 @@ public class PortalProjectile : MonoBehaviour
         }
     }
 
+    [HideFromIl2Cpp]
     private unsafe bool CheckSurface(Vector3 position, Quaternion rotation, Vector3* points, int count)
     {
         for (var i = 0; i < count; i++)
@@ -466,6 +469,7 @@ public class PortalProjectile : MonoBehaviour
         return true;
     }
 
+    [HideFromIl2Cpp]
     private bool CheckForPortal(Vector3 point)
     {
         var portalOverlap = Physics.OverlapSphere(point, 0.01f, 1 << PortalConstants.PortalLayer, QueryTriggerInteraction.Collide);
