@@ -1,8 +1,7 @@
-﻿using Il2CppInterop.Runtime.InteropTypes.Fields;
-using Il2CppInterop.Runtime.Attributes;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
+﻿using Il2CppInterop.Runtime.Attributes;
 
 using System;
+using System.Linq;
 
 using UnityEngine;
 
@@ -24,70 +23,39 @@ public class PortalGun : MonoBehaviour
 
     public static event FireCallback OnFireEvent;
 
-    #region FIELD INJECTION
-    public Il2CppValueField<Color> primaryOutsideColor;
-
-    public Il2CppValueField<Color> primaryInsideColor;
-
-    public Il2CppValueField<Color> secondaryOutsideColor;
-
-    public Il2CppValueField<Color> secondaryInsideColor;
-
-    public Il2CppValueField<int> portalShape;
-
-    public Il2CppValueField<int> portalId;
-
-    public Il2CppReferenceField<Transform> firePoint;
-
-    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> primaryOpenSounds;
-
-    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> secondaryOpenSounds;
-
-    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> fizzleSounds;
-
-    public Il2CppReferenceField<Il2CppReferenceArray<AudioClip>> invalidSounds;
-    #endregion
-
-    #region FIELDS
-    private AudioClip[] _primaryOpenSounds = null;
-    private AudioClip[] _secondaryOpenSounds = null;
-    private AudioClip[] _fizzleSounds = null;
-    private AudioClip[] _invalidSounds = null;
-    #endregion
-
     #region PROPERTIES
     [HideFromIl2Cpp]
-    public Color PrimaryOutsideColor => primaryOutsideColor.Get();
+    public Color PrimaryOutsideColor { get; set; }
 
     [HideFromIl2Cpp]
-    public Color PrimaryInsideColor => primaryInsideColor.Get();
+    public Color PrimaryInsideColor { get; set; }
 
     [HideFromIl2Cpp]
-    public Color SecondaryOutsideColor => secondaryOutsideColor.Get();
+    public Color SecondaryOutsideColor { get; set; }
 
     [HideFromIl2Cpp]
-    public Color SecondaryInsideColor => secondaryInsideColor.Get();
+    public Color SecondaryInsideColor { get; set; }
 
     [HideFromIl2Cpp]
-    public PortalShape PortalShape => (PortalShape)portalShape.Get();
+    public PortalShape PortalShape { get; set; }
 
     [HideFromIl2Cpp]
-    public int PortalId => portalId.Get();
+    public int PortalID { get; set; }
 
     [HideFromIl2Cpp]
-    public Transform FirePoint => firePoint.Get();
+    public Transform FirePoint { get; set; }
 
     [HideFromIl2Cpp]
-    public AudioClip[] PrimaryOpenSounds => _primaryOpenSounds;
+    public AudioClip[] PrimaryOpenSounds { get; set; } = Array.Empty<AudioClip>();
 
     [HideFromIl2Cpp]
-    public AudioClip[] SecondaryOpenSounds => _secondaryOpenSounds;
+    public AudioClip[] SecondaryOpenSounds { get; set; } = Array.Empty<AudioClip>();
 
     [HideFromIl2Cpp]
-    public AudioClip[] FizzleSounds => _fizzleSounds;
+    public AudioClip[] FizzleSounds { get; set; } = Array.Empty<AudioClip>();
 
     [HideFromIl2Cpp]
-    public AudioClip[] InvalidSounds => _invalidSounds;
+    public AudioClip[] InvalidSounds { get; set; } = Array.Empty<AudioClip>();
 
     [HideFromIl2Cpp]
     public MarrowBody MarrowBody { get; set; } = null;
@@ -100,7 +68,7 @@ public class PortalGun : MonoBehaviour
         {
             Primary = true,
             Secondary = true,
-            ID = PortalId,
+            ID = PortalID,
         });
     }
 
@@ -140,7 +108,7 @@ public class PortalGun : MonoBehaviour
             Size = size,
             Shape = PortalShape,
             Primary = primary,
-            ID = PortalId,
+            ID = PortalID,
             Origin = this,
         });
     }
@@ -174,34 +142,59 @@ public class PortalGun : MonoBehaviour
     private void Awake()
     {
         MarrowBody = GetComponent<MarrowBody>();
+    }
+    #endregion
 
-        var primaryOpenSounds = this.primaryOpenSounds.Get();
+    #region INJECTION
+    public void SetColors(Color primaryOutsideColor, Color primaryInsideColor, Color secondaryOutsideColor, Color secondaryInsideColor)
+    {
+        PrimaryOutsideColor = primaryOutsideColor;
+        PrimaryInsideColor = primaryInsideColor;
+        SecondaryOutsideColor = secondaryOutsideColor;
+        SecondaryInsideColor = secondaryInsideColor;
+    }
 
-        if (primaryOpenSounds != null)
-        {
-            _primaryOpenSounds = primaryOpenSounds;
-        }
+    public void SetPortalShape(int portalShape)
+    {
+        PortalShape = (PortalShape)portalShape;
+    }
 
-        var secondaryOpenSounds = this.secondaryOpenSounds.Get();
+    public void SetPortalID(int portalID)
+    {
+        PortalID = portalID;
+    }
 
-        if (secondaryOpenSounds != null)
-        {
-            _secondaryOpenSounds = secondaryOpenSounds;
-        }
+    public void SetFirePoint(Transform firePoint)
+    {
+        FirePoint = firePoint;
+    }
 
-        var fizzleSounds = this.fizzleSounds.Get();
+    public void AddPrimaryOpenSound(AudioClip audioClip) 
+    {
+        var sounds = PrimaryOpenSounds.ToList();
+        sounds.Add(audioClip);
+        PrimaryOpenSounds = sounds.ToArray();
+    }
 
-        if (fizzleSounds != null)
-        {
-            _fizzleSounds = fizzleSounds;
-        }
+    public void AddSecondaryOpenSound(AudioClip audioClip) 
+    {
+        var sounds = SecondaryOpenSounds.ToList();
+        sounds.Add(audioClip);
+        SecondaryOpenSounds = sounds.ToArray();
+    }
 
-        var invalidSounds = this.invalidSounds.Get();
+    public void AddFizzleSound(AudioClip audioClip) 
+    {
+        var sounds = FizzleSounds.ToList();
+        sounds.Add(audioClip);
+        FizzleSounds = sounds.ToArray();
+    }
 
-        if (invalidSounds != null)
-        {
-            _invalidSounds = invalidSounds;
-        }
+    public void AddInvalidSound(AudioClip audioClip) 
+    {
+        var sounds = InvalidSounds.ToList();
+        sounds.Add(audioClip);
+        InvalidSounds = sounds.ToArray();
     }
     #endregion
 }
