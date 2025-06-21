@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.XR;
+using UnityEngine.Rendering;
 
 using Portals.MonoBehaviours;
 
 using System;
+
+using Il2Cpp;
 
 namespace Portals.Rendering;
 
@@ -35,11 +38,15 @@ public class PortalCamera
 
     public Camera.StereoscopicEye Eye { get; set; }
 
+    public VolumetricRendering VolumetricRendering { get; set; }
+
     public event Action<RenderTexture> OnTargetTextureChanged;
 
     public PortalCamera(Portal portal, Camera.StereoscopicEye eye)
     {
         GameObject = new GameObject($"{eye} Portal Camera");
+        GameObject.SetActive(false);
+
         Transform = GameObject.transform;
 
         Transform.parent = portal.transform;
@@ -57,13 +64,19 @@ public class PortalCamera
         data.antialiasing = AntialiasingMode.None;
         data.allowXRRendering = false; // Having this enabled causes unnecessary effects like VRS to occur, and seemingly causes access violations as well!
 
+        VolumetricRendering = VolumetricCreator.AddVolumetricRendering(Camera);
+
+        GameObject.SetActive(true);
+
         var (width, height) = GetDimensions();
 
         Eye = eye;
 
         PortalPreferences.OnRenderScaleChanged += OnRenderScaleChanged;
+        PortalPreferences.OnRenderVolumetricsChanged += OnRenderVolumetricsChanged;
 
         OnRenderScaleChanged(PortalPreferences.RenderScale);
+        OnRenderVolumetricsChanged(PortalPreferences.RenderVolumetrics);
     }
 
     public void ReleaseTexture()
@@ -88,6 +101,11 @@ public class PortalCamera
         TargetTexture = new RenderTexture(width, height, 24);
     }
 
+    private void OnRenderVolumetricsChanged(bool value)
+    {
+        VolumetricRendering.enabled = value;
+    }
+
     private static (int width, int height) GetDimensions()
     {
         int width = XRSettings.eyeTextureWidth;
@@ -105,9 +123,38 @@ public class PortalCamera
     public void Destroy()
     {
         PortalPreferences.OnRenderScaleChanged -= OnRenderScaleChanged;
+        PortalPreferences.OnRenderVolumetricsChanged -= OnRenderVolumetricsChanged;
 
         GameObject.Destroy(GameObject);
 
         ReleaseTexture();
+    }
+
+    public void RenderCamera(ScriptableRenderContext context)
+    {
+        UpdateVolumetrics();
+
+        UniversalRenderPipeline.RenderSingleCamera(context, Camera);
+    }
+
+    private void UpdateVolumetrics()
+    {
+        if (!PortalPreferences.RenderVolumetrics)
+        {
+            return;
+        }
+
+        Camera.enabled = true;
+
+        try
+        {
+            VolumetricRendering.UpdateFunc();
+        }
+        catch (Exception e)
+        {
+            PortalsMod.Logger.Error("Failed invoking VolumetricRendering.UpdateFunc!", e);
+        }
+
+        Camera.enabled = false;
     }
 }

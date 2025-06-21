@@ -286,8 +286,8 @@ public class TeleportableBody : MonoBehaviour
             return;
         }
 
-        HostBody.Teleportable.UnHookBodyPortal(this);
-        Teleportable.UnHookBodyPortal(HostBody);
+        HostBody.Teleportable.UnhookBodyPortal(this);
+        Teleportable.UnhookBodyPortal(HostBody);
 
         HostBody.ParasiteBodies.Remove(this);
 

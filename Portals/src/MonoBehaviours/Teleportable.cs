@@ -145,7 +145,7 @@ public class Teleportable : MonoBehaviour
         }
     }
 
-    public void UnHookBodyPortal(TeleportableBody body)
+    public void UnhookBodyPortal(TeleportableBody body)
     {
         body.OnPortalEnterEvent -= OnPortalEnterCallback;
         body.OnPortalExitEvent -= OnPortalExitCallback;

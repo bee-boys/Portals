@@ -435,14 +435,14 @@ public class Portal : MonoBehaviour
 
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideID, 0f);
 
-            UniversalRenderPipeline.RenderSingleCamera(context, _leftEyeCamera.Camera);
+            _leftEyeCamera.RenderCamera(context);
 
             _rightEyeCamera.Transform.SetPositionAndRotation(rightEyeWorld, newRotation);
             _rightEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Right, centerSign, otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera);
 
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideID, 1f);
 
-            UniversalRenderPipeline.RenderSingleCamera(context, _rightEyeCamera.Camera);
+            _rightEyeCamera.RenderCamera(context);
 
             Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeID, 0);
 
@@ -459,7 +459,7 @@ public class Portal : MonoBehaviour
 
             _leftEyeCamera.Camera.projectionMatrix = newMatrix;
 
-            UniversalRenderPipeline.RenderSingleCamera(context, _leftEyeCamera.Camera);
+            _leftEyeCamera.RenderCamera(context);
         }
     }
 

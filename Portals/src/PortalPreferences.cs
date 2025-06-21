@@ -28,6 +28,21 @@ public static class PortalPreferences
         }
     }
 
+    private static bool _renderVolumetrics;
+    public static bool RenderVolumetrics
+    {
+        get
+        {
+            return _renderVolumetrics;
+        }
+        set
+        {
+            _renderVolumetrics = value;
+
+            OnRenderVolumetricsChanged?.Invoke(value);
+        }
+    }
+
     public static bool LimitDistance { get; private set; }
 
     private static int _renderDistance;
@@ -49,10 +64,14 @@ public static class PortalPreferences
 
     public static event Action<float> OnRenderScaleChanged;
 
+    public static event Action<bool> OnRenderVolumetricsChanged;
+
     private static MelonPreferences_Category _preferencesCategory = null;
 
     private static MelonPreferences_Entry<bool> _renderViewPreference = null;
     private static MelonPreferences_Entry<float> _renderScalePreference = null;
+
+    private static MelonPreferences_Entry<bool> _renderVolumetricsPreference = null;
 
     private static MelonPreferences_Entry<bool> _limitDistancePreference = null;
     private static MelonPreferences_Entry<int> _renderDistancePreference = null;
@@ -65,6 +84,8 @@ public static class PortalPreferences
 
     private static BoolElement _renderViewElement = null;
     private static FloatElement _renderScaleElement = null;
+
+    private static BoolElement _renderVolumetricsElement = null;
 
     private static BoolElement _limitDistanceElement = null;
     private static IntElement _renderDistanceElement = null;
@@ -79,6 +100,8 @@ public static class PortalPreferences
     {
         var defaultRenderView = true;
         var defaultRenderScale = 1f;
+
+        var defaultRenderVolumetrics = true;
 
         var defaultLimitDistance = true;
         var defaultRenderDistance = 25;
@@ -96,6 +119,8 @@ public static class PortalPreferences
 
         _renderViewPreference = _preferencesCategory.CreateEntry("Render View", defaultRenderView);
         _renderScalePreference = _preferencesCategory.CreateEntry("Render Scale", defaultRenderScale);
+
+        _renderVolumetricsPreference = _preferencesCategory.CreateEntry("Render Volumetrics", defaultRenderVolumetrics);
 
         _limitDistancePreference = _preferencesCategory.CreateEntry("Limit Distance", defaultLimitDistance);
         _renderDistancePreference = _preferencesCategory.CreateEntry("Render Distance", defaultRenderDistance);
@@ -123,6 +148,7 @@ public static class PortalPreferences
 
         RenderView = _renderViewPreference.Value;
         RenderScale = _renderScalePreference.Value;
+        RenderVolumetrics = _renderVolumetricsPreference.Value;
         LimitDistance = _limitDistancePreference.Value;
         RenderDistance = _renderDistancePreference.Value;
         MaxRecursion = _maxRecursionPreference.Value;
@@ -147,6 +173,8 @@ public static class PortalPreferences
         _renderViewElement = _portalsPage.CreateBool("Render View", Color.yellow, _renderViewPreference.Value, OnSetRenderView);
         _renderScaleElement = _portalsPage.CreateFloat("Render Scale", Color.yellow, _renderScalePreference.Value, 0.1f, 0.1f, 1f, OnSetRenderScale);
 
+        _renderVolumetricsElement = _portalsPage.CreateBool("Render Volumetrics", Color.cyan, _renderVolumetricsPreference.Value, OnSetRenderVolumetrics);
+
         _limitDistanceElement = _portalsPage.CreateBool("Limit Distance", Color.yellow, _limitDistancePreference.Value, OnSetLimitDistance);
         _renderDistanceElement = _portalsPage.CreateInt("Render Distance", Color.yellow, _renderDistancePreference.Value, 1, 1, 100, OnSetRenderDistance);
 
@@ -170,6 +198,14 @@ public static class PortalPreferences
     {
         RenderScale = value;
         _renderScalePreference.Value = value;
+
+        _preferencesCategory.SaveToFile(false);
+    }
+
+    private static void OnSetRenderVolumetrics(bool value)
+    {
+        RenderVolumetrics = value;
+        _renderVolumetricsPreference.Value = value;
 
         _preferencesCategory.SaveToFile(false);
     }

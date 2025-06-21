@@ -1,3 +1,7 @@
+**v1.6.0**
+- Fixed head offset not applying in certain levels
+- Added volumetrics to portal cameras
+
 **v1.5.0**
 - Fixed Fusion sync being broken
 

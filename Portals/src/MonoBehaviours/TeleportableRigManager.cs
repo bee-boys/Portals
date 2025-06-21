@@ -54,8 +54,6 @@ public class TeleportableRigManager : Teleportable
     public WindBuffetSFX WindBuffetSFX => _windBuffetSfx;
     private WindBuffetSFX _windBuffetSfx = null;
 
-    private Il2CppSystem.Action _onPostLateUpdate = null;
-
     protected override void OnTeleportableAwake()
     {
         base.OnTeleportableAwake();
@@ -78,25 +76,46 @@ public class TeleportableRigManager : Teleportable
         SetupEntity(marrowEntity);
     }
 
-    protected override void OnTeleportableStart()
-    {
-        base.OnTeleportableStart();
-
-        _onPostLateUpdate = (Il2CppSystem.Action)OnPostLateUpdate;
-        _rigManager.OnPostLateUpdate += _onPostLateUpdate;
-    }
-
     protected override void OnTeleportableDestroy()
     {
         base.OnTeleportableDestroy();
 
-        _rigManager.OnPostLateUpdate -= _onPostLateUpdate;
-        _onPostLateUpdate = null;
+        UnhookRig();
     }
 
     protected override void OnEnsureClone()
     {
+        HookRig();
+
         CreateClone(RigManager.gameObject);
+    }
+
+    private bool _hooked = false;
+    private Il2CppSystem.Action _onPostLateUpdate = null;
+
+    private void HookRig()
+    {
+        if (_hooked)
+        {
+            return;
+        }
+
+        _onPostLateUpdate = (Il2CppSystem.Action)OnPostLateUpdate;
+        _rigManager.OnPostLateUpdate += _onPostLateUpdate;
+        _hooked = true;
+    }
+
+    private void UnhookRig()
+    {
+        if (!_hooked)
+        {
+            return;
+        }
+
+        _rigManager.OnPostLateUpdate -= _onPostLateUpdate;
+        _onPostLateUpdate = null;
+
+        _hooked = false;
     }
 
     protected override void SetupBody(MarrowBody marrowBody)
