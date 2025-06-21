@@ -1,6 +1,6 @@
 {
     "name": "Portals",
-    "version_number": "1.3.0",
+    "version_number": "1.4.0",
     "website_url": "https://github.com/Lakatrazz/Portals",
     "description": "Adds functional portals that can be seen through.",
     "dependencies": [

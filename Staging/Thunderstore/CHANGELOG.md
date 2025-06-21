@@ -1,3 +1,7 @@
+**v1.4.0**
+- Potentially fixed random access violation crashes
+- Fixed field injection crashes
+
 **v1.3.0**
 - Fixed Quest crashing without Fusion installed
 - Added toggle to disable while in Fusion
