@@ -15,6 +15,7 @@ Implementing Portals comes with a lot of nuances and potential jank. Some of the
 In BoneMenu, you can toggle a few different settings for performance:
 - Render View - Toggles rendering through the portal.
 - Render Scale - Changes the resolution of the inside of the portal.
+- Render Volumetrics - Changes whether or not volumetrics render inside the portal, for performance.
 - Limit Distance - Enables the Render Distance option.
 - Render Distance - Controls how far away you can be from the portal before it stops rendering the view.
 - Max Recursion - The maximum amount of times you can see portals through each other before they stop rendering the view.
