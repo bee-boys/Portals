@@ -55,7 +55,7 @@ public class PortalCamera
 
         var data = GameObject.AddComponent<UniversalAdditionalCameraData>();
         data.antialiasing = AntialiasingMode.None;
-        data.allowXRRendering = true;
+        data.allowXRRendering = false; // Having this enabled causes unnecessary effects like VRS to occur, and seemingly causes access violations as well!
 
         var (width, height) = GetDimensions();
 
