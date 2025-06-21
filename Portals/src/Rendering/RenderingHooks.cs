@@ -34,19 +34,13 @@ public static class RenderingHooks
         }
     }
 
-    private static void OnBeginCameraRendering(ScriptableRenderContext ctx, Camera cam)
+    private static void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
-        // Prevent occasional memory access issues
-        if (ctx.m_Ptr == IntPtr.Zero || cam == null)
-        {
-            return;
-        }
-
         try
         {
-            PreBeginCameraRendering?.Invoke(ctx, cam);
+            PreBeginCameraRendering?.Invoke(context, camera);
 
-            BeginCameraRendering?.Invoke(ctx, cam);
+            BeginCameraRendering?.Invoke(context, camera);
         }
         catch (Exception e)
         {

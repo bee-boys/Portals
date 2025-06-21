@@ -309,7 +309,7 @@ public class Portal : MonoBehaviour
         return cam == _leftEyeCamera.Camera || cam == _rightEyeCamera.Camera;
     }
 
-    private void OnPreBeginCameraRendering(ScriptableRenderContext src, Camera cam)
+    private void OnPreBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
         _leftEyeNearPlane.Hide();
         _rightEyeNearPlane.Hide();
@@ -319,7 +319,7 @@ public class Portal : MonoBehaviour
         Surface.BackRenderer.enabled = !OneSided;
     }
 
-    private void OnBeginCameraRendering(ScriptableRenderContext src, Camera cam)
+    private void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
     {
         if (!PortalPreferences.RenderView)
         {
@@ -332,17 +332,17 @@ public class Portal : MonoBehaviour
             return;
         }
 
-        if (HasCamera(cam) || OtherPortal.HasCamera(cam))
+        if (HasCamera(camera) || OtherPortal.HasCamera(camera))
         {
             return;
         }
 
-        if (cam.targetTexture)
+        if (camera.targetTexture)
         {
             return;
         }
 
-        if (cam.orthographic)
+        if (camera.orthographic)
         {
             return;
         }
@@ -362,7 +362,7 @@ public class Portal : MonoBehaviour
 
             var radius = Math.Max(size.x, size.y);
 
-            var distance = (cam.transform.position - transform.position).magnitude;
+            var distance = (camera.transform.position - transform.position).magnitude;
 
             openMultiplier = 1f - Math.Clamp(Math.Max(0f, distance - radius) / Math.Max(radius, PortalPreferences.RenderDistance - radius), 0f, 1f);
 
@@ -389,15 +389,15 @@ public class Portal : MonoBehaviour
 
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, percent);
 
-            ApplyPosition(src, cam, i);
+            ApplyPosition(context, camera, i);
         }
 
         Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, openPercent);
 
-        DrawClippingPlane(cam);
+        DrawClippingPlane(camera);
     }
 
-    private void ApplyPosition(ScriptableRenderContext src, Camera mainCamera, int iteration = 0)
+    private void ApplyPosition(ScriptableRenderContext context, Camera mainCamera, int iteration = 0)
     {
         // Transform changes
         var mainCameraTransform = mainCamera.transform;
@@ -435,14 +435,14 @@ public class Portal : MonoBehaviour
 
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideID, 0f);
 
-            UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
+            UniversalRenderPipeline.RenderSingleCamera(context, _leftEyeCamera.Camera);
 
             _rightEyeCamera.Transform.SetPositionAndRotation(rightEyeWorld, newRotation);
             _rightEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Right, centerSign, otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera);
 
             Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideID, 1f);
 
-            UniversalRenderPipeline.RenderSingleCamera(src, _rightEyeCamera.Camera);
+            UniversalRenderPipeline.RenderSingleCamera(context, _rightEyeCamera.Camera);
 
             Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeID, 0);
 
@@ -459,7 +459,7 @@ public class Portal : MonoBehaviour
 
             _leftEyeCamera.Camera.projectionMatrix = newMatrix;
 
-            UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
+            UniversalRenderPipeline.RenderSingleCamera(context, _leftEyeCamera.Camera);
         }
     }
 
