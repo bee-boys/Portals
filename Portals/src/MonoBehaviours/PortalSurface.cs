@@ -102,7 +102,7 @@ public class PortalSurface : MonoBehaviour
         {
             _openPercent = value;
 
-            SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, value);
+            SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, value);
         }
     }
     #endregion
@@ -110,12 +110,12 @@ public class PortalSurface : MonoBehaviour
     #region METHODS
     public void SetOutline(Color color)
     {
-        SurfaceMaterial.SetColor(PortalShaderConstants.OutlineId, color);
+        SurfaceMaterial.SetColor(PortalShaderConstants.OutlineID, color);
     }
     
     public void SetInside(Color color)
     {
-        SurfaceMaterial.SetColor(PortalShaderConstants.InsideId, color);
+        SurfaceMaterial.SetColor(PortalShaderConstants.InsideID, color);
     }
     #endregion
 

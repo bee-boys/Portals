@@ -166,8 +166,8 @@ public class Portal : MonoBehaviour
         _leftEyeNearPlane = new PortalNearPlane(Surface.AlwaysVisibleShader);
         _rightEyeNearPlane = new PortalNearPlane(Surface.AlwaysVisibleShader);
 
-        _leftEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
-        _rightEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
+        _leftEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeID, 0f);
+        _rightEyeNearPlane.Material.SetFloat(PortalShaderConstants.TargetEyeID, 1f);
 
         _leftEyeCamera.OnTargetTextureChanged += OnLeftEyeTextureChanged;
         _rightEyeCamera.OnTargetTextureChanged += OnRightEyeTextureChanged;
@@ -241,14 +241,14 @@ public class Portal : MonoBehaviour
 
     private void OnLeftEyeTextureChanged(RenderTexture texture)
     {
-        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureId, texture);
-        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, texture);
+        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.LeftEyeTextureID, texture);
+        _leftEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureID, texture);
     }
 
     private void OnRightEyeTextureChanged(RenderTexture texture)
     {
-        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.RightEyeTextureId, texture);
-        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureId, texture);
+        Surface.SurfaceMaterial.SetTexture(PortalShaderConstants.RightEyeTextureID, texture);
+        _rightEyeNearPlane.Material.SetTexture(PortalShaderConstants.MainTextureID, texture);
     }
 
     private void OnDisable()
@@ -323,7 +323,7 @@ public class Portal : MonoBehaviour
     {
         if (!PortalPreferences.RenderView)
         {
-            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, 0f);
             return;
         }
 
@@ -369,7 +369,7 @@ public class Portal : MonoBehaviour
             // If the portal isn't open, don't bother rendering
             if (openMultiplier <= 0f)
             {
-                Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, 0f);
+                Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, 0f);
                 return;
             }
         }
@@ -387,12 +387,12 @@ public class Portal : MonoBehaviour
                 percent = openPercent * (1f - Math.Clamp(i / (float)initialValue, 0f, 1f));
             }
 
-            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, percent);
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, percent);
 
             ApplyPosition(src, cam, i);
         }
 
-        Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenId, openPercent);
+        Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.OpenID, openPercent);
 
         DrawClippingPlane(cam);
     }
@@ -419,7 +419,7 @@ public class Portal : MonoBehaviour
             CopyValues(mainCamera, _leftEyeCamera.Camera);
             CopyValues(mainCamera, _rightEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeId, 1);
+            Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeID, 1);
 
             var (left, right) = GetEyes();
 
@@ -433,18 +433,18 @@ public class Portal : MonoBehaviour
             _leftEyeCamera.Transform.SetPositionAndRotation(leftEyeWorld, newRotation);
             _leftEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Left, centerSign, otherPortalTransform, _leftEyeCamera.Transform, _leftEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideId, 0f);
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideID, 0f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _leftEyeCamera.Camera);
 
             _rightEyeCamera.Transform.SetPositionAndRotation(rightEyeWorld, newRotation);
             _rightEyeCamera.Camera.projectionMatrix = CalculateEyeProjectionMatrix(mainCamera, Camera.StereoscopicEye.Right, centerSign, otherPortalTransform, _rightEyeCamera.Transform, _rightEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideId, 1f);
+            Surface.SurfaceMaterial.SetFloat(PortalShaderConstants.EyeOverrideID, 1f);
 
             UniversalRenderPipeline.RenderSingleCamera(src, _rightEyeCamera.Camera);
 
-            Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeId, 0);
+            Surface.SurfaceMaterial.SetInt(PortalShaderConstants.ForceEyeID, 0);
 
         }
         else
@@ -520,8 +520,8 @@ public class Portal : MonoBehaviour
             {
                 Surface.CorridorRenderer.enabled = true;
 
-                Surface.CorridorMaterial.SetTexture(PortalShaderConstants.MainTextureId, _leftEyeCamera.TargetTexture);
-                Surface.CorridorMaterial.SetFloat(PortalShaderConstants.TargetEyeId, 0f);
+                Surface.CorridorMaterial.SetTexture(PortalShaderConstants.MainTextureID, _leftEyeCamera.TargetTexture);
+                Surface.CorridorMaterial.SetFloat(PortalShaderConstants.TargetEyeID, 0f);
 
                 Surface.FrontRenderer.enabled = isInFront;
                 Surface.BackRenderer.enabled = !isInFront;
@@ -535,8 +535,8 @@ public class Portal : MonoBehaviour
             {
                 Surface.CorridorRenderer.enabled = true;
 
-                Surface.CorridorMaterial.SetTexture(PortalShaderConstants.MainTextureId, _rightEyeCamera.TargetTexture);
-                Surface.CorridorMaterial.SetFloat(PortalShaderConstants.TargetEyeId, 1f);
+                Surface.CorridorMaterial.SetTexture(PortalShaderConstants.MainTextureID, _rightEyeCamera.TargetTexture);
+                Surface.CorridorMaterial.SetFloat(PortalShaderConstants.TargetEyeID, 1f);
 
                 Surface.FrontRenderer.enabled = isInFront;
                 Surface.BackRenderer.enabled = !isInFront;
