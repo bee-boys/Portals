@@ -1,3 +1,6 @@
+**v1.5.0**
+- Fixed Fusion sync being broken
+
 **v1.4.0**
 - Potentially fixed random access violation crashes
 - Fixed field injection crashes

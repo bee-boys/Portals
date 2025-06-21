@@ -14,7 +14,7 @@ namespace Portals;
 
 public class PortalsMod : MelonMod
 {
-    public const string Version = "1.4.0";
+    public const string Version = "1.5.0";
 
     public static MelonLogger.Instance Logger { get; private set; }
 

@@ -8,7 +8,11 @@ using Portals;
 using Portals.MonoBehaviours;
 using Portals.Pool;
 
+using System.Reflection;
+
 using UnityEngine;
+
+using Module = LabFusion.SDK.Modules.Module;
 
 namespace PortalsModule;
 
@@ -24,12 +28,14 @@ public class PortalsModule : Module
 
     public static bool IgnoreOverrides { get; set; } = false;
 
+    public static Assembly? ModuleAssembly { get; private set; } = null;
+
     protected override void OnModuleRegistered()
     {
-        base.OnModuleRegistered();
+        ModuleAssembly = Assembly.GetExecutingAssembly();
 
-        EntityComponentManager.LoadComponents(PortalsMod.PortalsAssembly);
-        ModuleMessageManager.LoadHandlers(PortalsMod.PortalsAssembly);
+        EntityComponentManager.LoadComponents(ModuleAssembly);
+        ModuleMessageManager.LoadHandlers(ModuleAssembly);
 
         PortalGun.OnFireEvent += OnPortalGunFired;
 
@@ -44,8 +50,6 @@ public class PortalsModule : Module
 
     protected override void OnModuleUnregistered()
     {
-        base.OnModuleUnregistered();
-
         PortalGun.OnFireEvent -= OnPortalGunFired;
 
         Teleportable.OnTryTeleportEvent -= OnTryTeleport;
