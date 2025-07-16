@@ -1,7 +1,7 @@
 Adds portals to BONELAB, with proper momentum conservation and stereoscopic rendering.
 
 # IMPORTANT
-This code mod does not contain the ability to spawn the portals. You must install both the [Portal Effects Resource and Portal Gun mods](https://mod.io/g/bonelab/c/portal-dependencies) in order to interact with portals.
+This code mod does not contain the ability to spawn the portals. You must install both the [Portal Effects Resource](https://mod.io/g/bonelab/m/portal-effects-resource) and [Portal Gun](https://mod.io/g/bonelab/m/portal-gun6) mods in order to interact with portals.
 
 These are both regular SDK mods, meaning you can download them to your SDK mods folder or by subscribing to them and clicking Download All in-game, but it cannot be downloaded to your MelonLoader/LemonLoader mods folder!
 
